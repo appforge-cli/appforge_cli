@@ -1,6 +1,7 @@
 // ignore: unused_import
 import 'dart:io';
 import 'package:args/command_runner.dart';
+import 'package:interact/interact.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:superapp_cli/generators/project_generator.dart';
 
@@ -64,7 +65,7 @@ class CreateCommand extends Command<int> {
     final org = argResults?['org'] as String;
     String? stateManagement = argResults?['state'] as String?; // nullable
     String? themeColor = argResults?['theme'] as String?; // nullable
-    final includeFirebase = argResults?['firebase'] as bool;
+    bool? includeFirebase = argResults?['firebase'] as bool?;
 
     // Non-interactive flags
     final nonInteractive = (argResults?['yes'] as bool) == true ||
@@ -78,6 +79,13 @@ class CreateCommand extends Command<int> {
     // Allowed options
     final allowedStates = ['provider', 'riverpod', 'bloc'];
     final allowedThemes = ['blue', 'green', 'coffee', 'purple', 'orange'];
+    final allowedAuthTypes = [
+      'email_password',
+      'username_password',
+      'phone_otp',
+      'social_auth',
+      'all'
+    ];
 
     // Prompt for state management only if not provided and interactive allowed
     if (stateManagement == null) {
@@ -117,6 +125,40 @@ class CreateCommand extends Command<int> {
       }
     }
 
+    // Prompt for authentication type
+    String authType;
+    if (!nonInteractive) {
+      logger.info('');
+      authType = logger.chooseOne(
+        '🔐 Choose authentication type:',
+        choices: [
+          'email_password - Email & Password',
+          'username_password - Username & Password',
+          'phone_otp - Phone Number & OTP',
+          'social_auth - Google & Apple Sign-In',
+          'all - All authentication methods',
+        ],
+        defaultValue: 'email_password - Email & Password',
+      );
+      // Extract the key before the dash
+      authType = authType.split(' ').first;
+    } else {
+      authType = 'email_password';
+      logger.detail('No auth type provided; defaulting to "email_password" in non-interactive mode.');
+    }
+
+    // Prompt for Firebase if not provided
+    if (includeFirebase == null && !nonInteractive) {
+      logger.info('');
+      includeFirebase = logger.confirm(
+        '🔥 Include Firebase?',
+        defaultValue: false,
+      );
+    } else if (includeFirebase == null) {
+      includeFirebase = false;
+      logger.detail('Firebase not specified; defaulting to false in non-interactive mode.');
+    }
+
     // Show summary before proceeding
     if (!nonInteractive) {
       logger
@@ -126,7 +168,8 @@ class CreateCommand extends Command<int> {
         ..info('  Organization: $org')
         ..info('  State Management: $stateManagement')
         ..info('  Theme: ${_getThemeEmoji(themeColor!)} $themeColor')
-        ..info('  Firebase: ${includeFirebase ? '✓ Yes' : '✗ No'}')
+        ..info('  Auth Type: ${_getAuthTypeDisplay(authType)}')
+        ..info('  Firebase: ${includeFirebase ? '🔥 Yes' : '✗ No'}')
         ..info('');
 
       final confirm = logger.confirm(
@@ -149,6 +192,7 @@ class CreateCommand extends Command<int> {
         stateManagement: stateManagement!,
         includeFirebase: includeFirebase,
         themeColor: themeColor!,
+        authType: authType,
         logger: logger,
       );
 
@@ -159,18 +203,30 @@ class CreateCommand extends Command<int> {
         ..info('')
         ..success('✨ Flutter app created: $projectName')
         ..success('🎨 Theme: ${_getThemeEmoji(themeColor)} $themeColor')
+        ..success('🔐 Auth: ${_getAuthTypeDisplay(authType)}')
+        ..success('🔥 Firebase: ${includeFirebase ? 'Enabled' : 'Disabled'}')
         ..info('')
         ..info('Next steps:')
         ..info('  1. cd $projectName')
         ..info('  2. flutter run')
         ..info('')
         ..info('📱 Your app includes:')
+        ..info('  • Splash Screen with smooth transitions')
         ..info('  • Home Screen with stats and quick actions')
         ..info('  • Profile Screen with settings')
-        ..info('  • Login Screen with authentication UI')
+        ..info('  • ${_getAuthScreensDescription(authType)}')
         ..info('  • Light & Dark mode support')
         ..info('  • Responsive design for phones and tablets')
-        ..info('');
+        ..info('  • Go Router navigation with deep linking')
+        ..info('  • 12+ reusable widgets (cards, buttons, loaders, etc.)')
+        ..info('  • Custom app bar & bottom navigation')
+        ..info('  • Dialog & snackbar helpers');
+
+      if (includeFirebase) {
+        logger.info('  • Firebase integration ready');
+      }
+      
+      logger.info('');
 
       return 0;
     } catch (e, st) {
@@ -207,6 +263,40 @@ class CreateCommand extends Command<int> {
         return '🧡';
       default:
         return '🎨';
+    }
+  }
+
+  String _getAuthTypeDisplay(String authType) {
+    switch (authType) {
+      case 'email_password':
+        return 'Email & Password';
+      case 'username_password':
+        return 'Username & Password';
+      case 'phone_otp':
+        return 'Phone Number & OTP';
+      case 'social_auth':
+        return 'Google & Apple Sign-In';
+      case 'all':
+        return 'All authentication methods';
+      default:
+        return 'Email & Password';
+    }
+  }
+
+  String _getAuthScreensDescription(String authType) {
+    switch (authType) {
+      case 'email_password':
+        return 'Login & Signup with Email/Password';
+      case 'username_password':
+        return 'Login & Signup with Username/Password';
+      case 'phone_otp':
+        return 'Login & Signup with Phone & OTP verification';
+      case 'social_auth':
+        return 'Social login with Google & Apple';
+      case 'all':
+        return 'Complete auth suite (Email, Username, Phone OTP, Social)';
+      default:
+        return 'Login & Signup screens';
     }
   }
 }

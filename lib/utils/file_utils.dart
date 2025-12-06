@@ -5,6 +5,7 @@ class FileUtils {
   static Future<void> writeFile(String filePath, String content) async {
     final file = File(filePath);
     
+    // Create parent directory if it doesn't exist
     final directory = file.parent;
     if (!await directory.exists()) {
       await directory.create(recursive: true);

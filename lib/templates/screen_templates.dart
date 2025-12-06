@@ -1,4 +1,83 @@
+import 'package:superapp_cli/templates/phone_otp_auth_templates.dart' show PhoneOTPAuthTemplates, UnifiedAuthTemplates, SocialAuthTemplates;
+import 'package:superapp_cli/templates/auth_template.dart';
+
 class ScreenTemplates {
+  /// Generates a splash screen
+  static String generateSplashScreen(String projectName) {
+    return '''
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({Key? key}) : super(key: key);
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _navigateToHome();
+  }
+
+  Future<void> _navigateToHome() async {
+    // TODO: Add initialization logic here (check auth, load data, etc.)
+    await Future.delayed(const Duration(seconds: 2));
+    
+    if (mounted) {
+      context.go('/');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              theme.colorScheme.primary,
+              theme.colorScheme.secondary,
+            ],
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.rocket_launch,
+                size: 100,
+                color: theme.colorScheme.onPrimary,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Welcome',
+                style: theme.textTheme.displayMedium?.copyWith(
+                  color: theme.colorScheme.onPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 48),
+              CircularProgressIndicator(
+                color: theme.colorScheme.onPrimary,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+''';
+  }
+
   /// Generates a responsive home screen
   static String generateHomeScreen(String projectName) {
     return '''
@@ -386,170 +465,44 @@ class ProfileScreen extends StatelessWidget {
 
   /// Generates a login screen
   static String generateLoginScreen(String projectName) {
-    return '''
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
-
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _isPasswordVisible = false;
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
+    return generateEmailPasswordLogin(projectName);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final size = MediaQuery.of(context).size;
-    final isTablet = size.width > 600;
-    
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: isTablet ? 500 : double.infinity,
-              ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Icon(
-                      Icons.lock_outline,
-                      size: 80,
-                      color: theme.colorScheme.primary,
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Welcome Back',
-                      style: theme.textTheme.displaySmall,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Sign in to continue',
-                      style: theme.textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 48),
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        hintText: 'Enter your email',
-                        prefixIcon: Icon(Icons.email_outlined),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        if (!value.contains('@')) {
-                          return 'Please enter a valid email';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: !_isPasswordVisible,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        hintText: 'Enter your password',
-                        prefixIcon: const Icon(Icons.lock_outlined),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _isPasswordVisible
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _isPasswordVisible = !_isPasswordVisible;
-                            });
-                          },
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
-                        }
-                        if (value.length < 6) {
-                          return 'Password must be at least 6 characters';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {},
-                        child: const Text('Forgot Password?'),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          context.go('/');
-                        }
-                      },
-                      child: const Text('Login'),
-                    ),
-                    const SizedBox(height: 16),
-                    OutlinedButton(
-                      onPressed: () {},
-                      child: const Text('Create Account'),
-                    ),
-                    const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        const Expanded(child: Divider()),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            'OR',
-                            style: theme.textTheme.bodySmall,
-                          ),
-                        ),
-                        const Expanded(child: Divider()),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    OutlinedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.g_mobiledata, size: 32),
-                      label: const Text('Continue with Google'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+  // AUTH SCREEN GENERATORS
+  static String generateEmailPasswordLogin(String projectName) {
+    // Use the template from AuthScreenTemplates
+    return AuthScreenTemplates.generateEmailPasswordLogin(projectName);
   }
-}
-''';
+
+  static String generateEmailPasswordSignup(String projectName) {
+    return AuthScreenTemplates.generateEmailPasswordSignup(projectName);
+  }
+
+  static String generateUsernamePasswordLogin(String projectName) {
+    return AuthScreenTemplates.generateUsernamePasswordLogin(projectName);
+  }
+
+  static String generateUsernamePasswordSignup(String projectName) {
+    return AuthScreenTemplates.generateUsernamePasswordSignup(projectName);
+  }
+
+  static String generatePhoneOTPLogin(String projectName) {
+    return PhoneOTPAuthTemplates.generatePhoneOTPLogin(projectName);
+  }
+
+  static String generateOTPVerification(String projectName) {
+    return PhoneOTPAuthTemplates.generateOTPVerification(projectName);
+  }
+
+  static String generateSocialLogin(String projectName) {
+    return SocialAuthTemplates.generateSocialLogin(projectName);
+  }
+
+  static String generateUnifiedLogin(String projectName) {
+    return UnifiedAuthTemplates.generateUnifiedLogin(projectName);
+  }
+
+  static String generateUnifiedSignup(String projectName) {
+    return UnifiedAuthTemplates.generateUnifiedSignup(projectName);
   }
 }

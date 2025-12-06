@@ -1,78 +1,83 @@
 class AppRouterTemplate {
-  static String generate() {
-    return r'''
+  static String generate(String projectName) {
+    return '''
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-// IMPORT YOUR REAL SCREENS HERE WHEN GENERATED
-// import '../../features/auth/screens/login_screen.dart';
-// import '../../features/home/screens/home_screen.dart';
+// Import generated screens
+import '../../features/auth/screens/login_screen.dart';
+import '../../features/home/screens/home_screen.dart';
+import '../../features/profile/screens/profile_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
-  routes: <GoRoute>[
+  debugLogDiagnostics: true,
+  routes: <RouteBase>[
     GoRoute(
       path: '/',
-      name: 'splash',
-      builder: (context, state) => const SplashScreenStub(),
-    ),
-    GoRoute(
-      path: '/home',
       name: 'home',
-      builder: (context, state) => const HomeScreenStub(),
+      builder: (context, state) => const HomeScreen(),
+      routes: [
+        GoRoute(
+          path: 'profile',
+          name: 'profile',
+          builder: (context, state) => const ProfileScreen(),
+        ),
+      ],
     ),
     GoRoute(
       path: '/login',
       name: 'login',
-      builder: (context, state) => const LoginScreenStub(),
-    ),
-    GoRoute(
-      path: '/signup',
-      name: 'signup',
-      builder: (context, state) => const SignupScreenStub(),
+      builder: (context, state) => const LoginScreen(),
     ),
   ],
-  errorBuilder: (context, state) => const Scaffold(
-    body: Center(child: Text('Page not found')),
+  errorBuilder: (context, state) => Scaffold(
+    appBar: AppBar(
+      title: const Text('Error'),
+    ),
+    body: Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.error_outline,
+            size: 80,
+            color: Colors.red,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Page not found',
+            style: Theme.of(context).textTheme.headlineMedium,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            state.uri.toString(),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => context.go('/'),
+            icon: const Icon(Icons.home),
+            label: const Text('Go Home'),
+          ),
+        ],
+      ),
+    ),
   ),
+  // Optional: Add redirect logic for authentication
+  // redirect: (context, state) {
+  //   final isLoggedIn = false; // Check your auth state here
+  //   final isLoggingIn = state.matchedLocation == '/login';
+  //   
+  //   if (!isLoggedIn && !isLoggingIn) {
+  //     return '/login';
+  //   }
+  //   if (isLoggedIn && isLoggingIn) {
+  //     return '/';
+  //   }
+  //   return null;
+  // },
 );
-
-// --- Stub screens (replace with your actual screens when generated) ---
-class SplashScreenStub extends StatelessWidget {
-  const SplashScreenStub({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) => const Scaffold(
-        body: Center(child: Text('Splash')),
-      );
-}
-
-class HomeScreenStub extends StatelessWidget {
-  const HomeScreenStub({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) => const Scaffold(
-        body: Center(child: Text('Home')),
-      );
-}
-
-class LoginScreenStub extends StatelessWidget {
-  const LoginScreenStub({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) => const Scaffold(
-        body: Center(child: Text('Login')),
-      );
-}
-
-class SignupScreenStub extends StatelessWidget {
-  const SignupScreenStub({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) => const Scaffold(
-        body: Center(child: Text('Signup')),
-      );
-}
 ''';
   }
 }

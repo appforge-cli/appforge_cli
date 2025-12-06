@@ -6,6 +6,7 @@ import 'package:superapp_cli/templates/main_template.dart';
 import 'package:superapp_cli/templates/pubspec_template.dart';
 import 'package:superapp_cli/templates/theme_template.dart';
 import 'package:superapp_cli/templates/screen_templates.dart';
+import 'package:superapp_cli/templates/widgets_template.dart';
 import 'package:superapp_cli/utils/file_utils.dart';
 
 class ProjectGenerator {
@@ -15,6 +16,7 @@ class ProjectGenerator {
     required this.stateManagement,
     required this.includeFirebase,
     required this.themeColor,
+    required this.authType,
     required this.logger,
   });
 
@@ -23,6 +25,7 @@ class ProjectGenerator {
   final String stateManagement;
   final bool includeFirebase;
   final String themeColor;
+  final String authType;
   final Logger logger;
 
   Future<void> generate() async {
@@ -38,22 +41,25 @@ class ProjectGenerator {
     // Step 4: Generate theme
     await _generateTheme();
 
-    // Step 5: Generate screens
+    // Step 5: Generate reusable widgets
+    await _generateReusableWidgets();
+
+    // Step 6: Generate screens
     await _generateScreens();
 
-    // Step 6: Generate router
+    // Step 7: Generate router
     await _generateRouter();
 
-    // Step 7: Generate main.dart
+    // Step 8: Generate main.dart
     await _generateMainFile();
 
-    // Step 8: Replace default test with a compatible smoke test
+    // Step 9: Replace default test with a compatible smoke test
     await _generateTestFile();
 
-    // Step 9: Run flutter pub get
+    // Step 10: Run flutter pub get
     await _runFlutterPubGet();
 
-    // Step 10: Configure Firebase if needed
+    // Step 11: Configure Firebase if needed
     if (includeFirebase) {
       await _configureFirebase();
     }
@@ -70,7 +76,65 @@ class ProjectGenerator {
     logger.detail('Generated theme at $themePath with $themeColor color scheme');
   }
 
+  Future<void> _generateReusableWidgets() async {
+    final widgetsDir = path.join(projectName, 'lib', 'shared', 'widgets');
+    await Directory(widgetsDir).create(recursive: true);
+
+    final widgets = {
+      'custom_app_bar.dart': ReusableWidgetsTemplate.generateCustomAppBar(),
+      'custom_bottom_nav_bar.dart': ReusableWidgetsTemplate.generateBottomNavBar(),
+      'loading_indicators.dart': ReusableWidgetsTemplate.generateLoadingIndicators(),
+      'custom_cards.dart': ReusableWidgetsTemplate.generateCustomCards(),
+      'custom_buttons.dart': ReusableWidgetsTemplate.generateCustomButtons(),
+      'empty_states.dart': ReusableWidgetsTemplate.generateEmptyStates(),
+      'custom_input_fields.dart': ReusableWidgetsTemplate.generateCustomInputFields(),
+      'dialog_helper.dart': ReusableWidgetsTemplate.generateDialogHelpers(),
+      'snackbar_helper.dart': ReusableWidgetsTemplate.generateSnackbarHelpers(),
+      'custom_list_tiles.dart': ReusableWidgetsTemplate.generateListTiles(),
+      'custom_avatar.dart': ReusableWidgetsTemplate.generateAvatarWidget(),
+      'custom_badge.dart': ReusableWidgetsTemplate.generateBadgeWidget(),
+    };
+
+    for (final entry in widgets.entries) {
+      final widgetPath = path.join(widgetsDir, entry.key);
+      await FileUtils.writeFile(widgetPath, entry.value);
+      logger.detail('Generated ${entry.key}');
+    }
+
+    // Generate barrel file for easy imports
+    await _generateWidgetsBarrelFile(widgetsDir, widgets.keys.toList());
+  }
+
+  Future<void> _generateWidgetsBarrelFile(String widgetsDir, List<String> fileNames) async {
+    final exports = fileNames.map((name) => "export '$name';").join('\n');
+    final barrelContent = '''
+// Barrel file for shared widgets
+// Import this file to access all reusable widgets
+$exports
+''';
+    
+    final barrelPath = path.join(widgetsDir, 'widgets.dart');
+    await FileUtils.writeFile(barrelPath, barrelContent);
+    logger.detail('Generated widgets barrel file');
+  }
+
   Future<void> _generateScreens() async {
+    // Generate Splash Screen
+    final splashScreenPath = path.join(
+      projectName,
+      'lib',
+      'features',
+      'app',
+      'screens',
+      'splash_screen.dart',
+    );
+    await Directory(path.dirname(splashScreenPath)).create(recursive: true);
+    await FileUtils.writeFile(
+      splashScreenPath,
+      ScreenTemplates.generateSplashScreen(projectName),
+    );
+    logger.detail('Generated SplashScreen at $splashScreenPath');
+
     // Generate Home Screen
     final homeScreenPath = path.join(
       projectName,
@@ -103,28 +167,120 @@ class ProjectGenerator {
     );
     logger.detail('Generated ProfileScreen at $profileScreenPath');
 
-    // Generate Login Screen
-    final loginScreenPath = path.join(
-      projectName,
-      'lib',
-      'features',
-      'auth',
-      'screens',
-      'login_screen.dart',
-    );
-    await Directory(path.dirname(loginScreenPath)).create(recursive: true);
+    // Generate Auth Screens based on authType
+    await _generateAuthScreens();
+  }
+
+  Future<void> _generateAuthScreens() async {
+    final authDir = path.join(projectName, 'lib', 'features', 'auth', 'screens');
+    await Directory(authDir).create(recursive: true);
+
+    switch (authType) {
+      case 'email_password':
+        await _generateEmailPasswordAuth(authDir);
+        break;
+      case 'username_password':
+        await _generateUsernamePasswordAuth(authDir);
+        break;
+      case 'phone_otp':
+        await _generatePhoneOTPAuth(authDir);
+        break;
+      case 'social_auth':
+        await _generateSocialAuth(authDir);
+        break;
+      case 'all':
+        await _generateAllAuth(authDir);
+        break;
+      default:
+        await _generateEmailPasswordAuth(authDir);
+    }
+  }
+
+  Future<void> _generateEmailPasswordAuth(String authDir) async {
+    final loginPath = path.join(authDir, 'login_screen.dart');
     await FileUtils.writeFile(
-      loginScreenPath,
-      ScreenTemplates.generateLoginScreen(projectName),
+      loginPath,
+      ScreenTemplates.generateEmailPasswordLogin(projectName),
     );
-    logger.detail('Generated LoginScreen at $loginScreenPath');
+    logger.detail('Generated Email/Password LoginScreen');
+
+    final signupPath = path.join(authDir, 'signup_screen.dart');
+    await FileUtils.writeFile(
+      signupPath,
+      ScreenTemplates.generateEmailPasswordSignup(projectName),
+    );
+    logger.detail('Generated Email/Password SignupScreen');
+  }
+
+  Future<void> _generateUsernamePasswordAuth(String authDir) async {
+    final loginPath = path.join(authDir, 'login_screen.dart');
+    await FileUtils.writeFile(
+      loginPath,
+      ScreenTemplates.generateUsernamePasswordLogin(projectName),
+    );
+    logger.detail('Generated Username/Password LoginScreen');
+
+    final signupPath = path.join(authDir, 'signup_screen.dart');
+    await FileUtils.writeFile(
+      signupPath,
+      ScreenTemplates.generateUsernamePasswordSignup(projectName),
+    );
+    logger.detail('Generated Username/Password SignupScreen');
+  }
+
+  Future<void> _generatePhoneOTPAuth(String authDir) async {
+    final loginPath = path.join(authDir, 'login_screen.dart');
+    await FileUtils.writeFile(
+      loginPath,
+      ScreenTemplates.generatePhoneOTPLogin(projectName),
+    );
+    logger.detail('Generated Phone/OTP LoginScreen');
+
+    final otpPath = path.join(authDir, 'otp_verification_screen.dart');
+    await FileUtils.writeFile(
+      otpPath,
+      ScreenTemplates.generateOTPVerification(projectName),
+    );
+    logger.detail('Generated OTP VerificationScreen');
+  }
+
+  Future<void> _generateSocialAuth(String authDir) async {
+    final loginPath = path.join(authDir, 'login_screen.dart');
+    await FileUtils.writeFile(
+      loginPath,
+      ScreenTemplates.generateSocialLogin(projectName),
+    );
+    logger.detail('Generated Social LoginScreen');
+  }
+
+  Future<void> _generateAllAuth(String authDir) async {
+    final loginPath = path.join(authDir, 'login_screen.dart');
+    await FileUtils.writeFile(
+      loginPath,
+      ScreenTemplates.generateUnifiedLogin(projectName),
+    );
+    logger.detail('Generated Unified LoginScreen');
+
+    final signupPath = path.join(authDir, 'signup_screen.dart');
+    await FileUtils.writeFile(
+      signupPath,
+      ScreenTemplates.generateUnifiedSignup(projectName),
+    );
+    logger.detail('Generated Unified SignupScreen');
+
+    final otpPath = path.join(authDir, 'otp_verification_screen.dart');
+    await FileUtils.writeFile(
+      otpPath,
+      ScreenTemplates.generateOTPVerification(projectName),
+    );
+    logger.detail('Generated OTP VerificationScreen');
   }
 
   Future<void> _generateRouter() async {
     final routerPath = path.join(projectName, 'lib', 'app', 'router', 'app_router.dart');
     await Directory(path.dirname(routerPath)).create(recursive: true);
 
-    final content = AppRouterTemplate.generate();
+    final content = AppRouterTemplate.generate(projectName);
     await FileUtils.writeFile(routerPath, content);
     logger.detail('Generated router at $routerPath');
   }
@@ -181,6 +337,7 @@ void main() {
       'app/router',
       'app/theme',
       'app/di',
+      'features/app/screens',
       'features/auth/screens',
       'features/auth/widgets',
       'features/auth/services',
