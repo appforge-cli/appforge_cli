@@ -3,6 +3,7 @@ class PubspecTemplate {
     required String projectName,
     required String stateManagement,
     required bool includeFirebase,
+    List<String> firebaseModules = const [], // ← ADDED THIS LINE
   }) {
     // Build dependencies list
     final stateManagementDeps = <String>[];
@@ -19,16 +20,38 @@ class PubspecTemplate {
         break;
     }
 
-    // Firebase dependencies
+    // Firebase dependencies based on selected modules
     final firebaseDeps = <String>[];
     if (includeFirebase) {
-      firebaseDeps.addAll([
-        '  firebase_core: ^3.8.1',
-        '  firebase_auth: ^5.3.4',
-        '  cloud_firestore: ^5.5.2',
-        '  firebase_storage: ^12.3.8',
-        '  firebase_analytics: ^11.3.8',
-      ]);
+      if (firebaseModules.isEmpty) {
+        // Backward compatibility - include all if no modules specified
+        firebaseDeps.addAll([
+          '  firebase_core: ^3.8.1',
+          '  firebase_auth: ^5.3.4',
+          '  cloud_firestore: ^5.5.2',
+          '  firebase_storage: ^12.3.8',
+          '  firebase_analytics: ^11.3.8',
+        ]);
+      } else {
+        // Add only selected modules
+        if (firebaseModules.contains('core') || firebaseModules.length > 1) {
+          firebaseDeps.add('  firebase_core: ^3.8.1');
+        }
+        if (firebaseModules.contains('auth')) {
+          firebaseDeps.add('  firebase_auth: ^5.3.4');
+        }
+        if (firebaseModules.contains('firestore')) {
+          firebaseDeps.add('  cloud_firestore: ^5.5.2');
+        }
+        if (firebaseModules.contains('storage')) {
+          firebaseDeps.add('  firebase_storage: ^12.3.8');
+        }
+        if (firebaseModules.contains('fcm')) {
+          firebaseDeps.add('  firebase_messaging: ^15.1.5');
+          firebaseDeps.add('  flutter_local_notifications: ^18.0.1');
+        }
+        firebaseDeps.add('  firebase_analytics: ^11.3.8');
+      }
     }
 
     return '''

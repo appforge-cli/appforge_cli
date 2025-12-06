@@ -2,11 +2,12 @@ import 'dart:io';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as path;
 import 'package:superapp_cli/templates/app_router_template.dart';
+import 'package:superapp_cli/templates/firebase_operations_template.dart';
 import 'package:superapp_cli/templates/main_template.dart';
 import 'package:superapp_cli/templates/pubspec_template.dart';
 import 'package:superapp_cli/templates/theme_template.dart';
 import 'package:superapp_cli/templates/screen_templates.dart';
-import 'package:superapp_cli/templates/widgets_template.dart';
+import 'package:superapp_cli/templates/widgets_template.dart' show ReusableWidgetsTemplate;
 import 'package:superapp_cli/utils/file_utils.dart';
 
 class ProjectGenerator {
@@ -15,6 +16,7 @@ class ProjectGenerator {
     required this.organization,
     required this.stateManagement,
     required this.includeFirebase,
+    this.firebaseModules = const [],
     required this.themeColor,
     required this.authType,
     required this.logger,
@@ -24,6 +26,7 @@ class ProjectGenerator {
   final String organization;
   final String stateManagement;
   final bool includeFirebase;
+  final List<String> firebaseModules;
   final String themeColor;
   final String authType;
   final Logger logger;
@@ -44,22 +47,27 @@ class ProjectGenerator {
     // Step 5: Generate reusable widgets
     await _generateReusableWidgets();
 
-    // Step 6: Generate screens
+    // Step 6: Generate Firebase operations if enabled
+    if (includeFirebase && firebaseModules.isNotEmpty) {
+      await _generateFirebaseOperations();
+    }
+
+    // Step 7: Generate screens
     await _generateScreens();
 
-    // Step 7: Generate router
+    // Step 8: Generate router
     await _generateRouter();
 
-    // Step 8: Generate main.dart
+    // Step 9: Generate main.dart
     await _generateMainFile();
 
-    // Step 9: Replace default test with a compatible smoke test
+    // Step 10: Replace default test with a compatible smoke test
     await _generateTestFile();
 
-    // Step 10: Run flutter pub get
+    // Step 11: Run flutter pub get
     await _runFlutterPubGet();
 
-    // Step 11: Configure Firebase if needed
+    // Step 12: Configure Firebase if needed
     if (includeFirebase) {
       await _configureFirebase();
     }
@@ -74,6 +82,17 @@ class ProjectGenerator {
     final content = ThemeTemplate.generate(themeColor);
     await FileUtils.writeFile(themePath, content);
     logger.detail('Generated theme at $themePath with $themeColor color scheme');
+  }
+
+  Future<void> _generateFirebaseOperations() async {
+    final firebaseDir = path.join(projectName, 'lib', 'core', 'firebase');
+    await Directory(firebaseDir).create(recursive: true);
+
+    final content = FirebaseOperationsTemplate.generate(firebaseModules);
+    final filePath = path.join(firebaseDir, 'firebase_operations.dart');
+    
+    await FileUtils.writeFile(filePath, content);
+    logger.detail('Generated Firebase operations file with modules: ${firebaseModules.join(', ')}');
   }
 
   Future<void> _generateReusableWidgets() async {
@@ -357,6 +376,7 @@ void main() {
       'core/network',
       'core/storage',
       'core/config',
+      'core/firebase',
       'config',
       'models',
       'providers',
@@ -377,8 +397,10 @@ void main() {
       projectName: projectName,
       stateManagement: stateManagement,
       includeFirebase: includeFirebase,
+      firebaseModules: firebaseModules,
     );
     await FileUtils.writeFile(pubspecPath, content);
+    logger.detail('Generated pubspec.yaml');
   }
 
   Future<void> _runFlutterPubGet() async {

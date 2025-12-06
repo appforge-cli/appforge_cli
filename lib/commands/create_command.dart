@@ -1,6 +1,7 @@
 // ignore: unused_import
 import 'dart:io';
 import 'package:args/command_runner.dart';
+// ignore: unused_import
 import 'package:interact/interact.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:superapp_cli/generators/project_generator.dart';
@@ -65,7 +66,10 @@ class CreateCommand extends Command<int> {
     final org = argResults?['org'] as String;
     String? stateManagement = argResults?['state'] as String?; // nullable
     String? themeColor = argResults?['theme'] as String?; // nullable
-    bool? includeFirebase = argResults?['firebase'] as bool?;
+    
+    // Check if firebase flag was explicitly provided
+    final firebaseFlagProvided = argResults?.wasParsed('firebase') ?? false;
+    bool? includeFirebase = firebaseFlagProvided ? (argResults?['firebase'] as bool?) : null;
 
     // Non-interactive flags
     final nonInteractive = (argResults?['yes'] as bool) == true ||
@@ -79,6 +83,7 @@ class CreateCommand extends Command<int> {
     // Allowed options
     final allowedStates = ['provider', 'riverpod', 'bloc'];
     final allowedThemes = ['blue', 'green', 'coffee', 'purple', 'orange'];
+    // ignore: unused_local_variable
     final allowedAuthTypes = [
       'email_password',
       'username_password',
@@ -148,15 +153,42 @@ class CreateCommand extends Command<int> {
     }
 
     // Prompt for Firebase if not provided
+    List<String> firebaseModules = [];
     if (includeFirebase == null && !nonInteractive) {
       logger.info('');
       includeFirebase = logger.confirm(
         '🔥 Include Firebase?',
         defaultValue: false,
       );
+      
+      if (includeFirebase) {
+        // Ask which Firebase modules to include
+        logger.info('');
+        final selectedModules = logger.chooseAny(
+          '📦 Select Firebase modules (space to select, enter to continue):',
+          choices: [
+            'auth - Authentication',
+            'firestore - Cloud Firestore (NoSQL Database)',
+            'storage - Cloud Storage',
+            'fcm - Cloud Messaging (Push Notifications)',
+          ],
+          defaultValues: ['auth - Authentication'],
+        );
+        
+        // Extract module keys
+        firebaseModules = selectedModules.map((m) => m.split(' ').first).toList();
+        
+        // Core is always included if any module is selected
+        if (firebaseModules.isNotEmpty && !firebaseModules.contains('core')) {
+          firebaseModules.insert(0, 'core');
+        }
+      }
     } else if (includeFirebase == null) {
       includeFirebase = false;
       logger.detail('Firebase not specified; defaulting to false in non-interactive mode.');
+    } else if (includeFirebase) {
+      // If Firebase enabled via flag, include all modules by default
+      firebaseModules = ['core', 'auth', 'firestore', 'storage', 'fcm'];
     }
 
     // Show summary before proceeding
@@ -169,8 +201,13 @@ class CreateCommand extends Command<int> {
         ..info('  State Management: $stateManagement')
         ..info('  Theme: ${_getThemeEmoji(themeColor!)} $themeColor')
         ..info('  Auth Type: ${_getAuthTypeDisplay(authType)}')
-        ..info('  Firebase: ${includeFirebase ? '🔥 Yes' : '✗ No'}')
-        ..info('');
+        ..info('  Firebase: ${includeFirebase ? '🔥 Yes' : '✗ No'}');
+      
+      if (includeFirebase && firebaseModules.isNotEmpty) {
+        logger.info('  Firebase Modules: ${firebaseModules.join(', ')}');
+      }
+      
+      logger.info('');
 
       final confirm = logger.confirm(
         'Continue with these settings?',
@@ -191,6 +228,7 @@ class CreateCommand extends Command<int> {
         organization: org,
         stateManagement: stateManagement!,
         includeFirebase: includeFirebase,
+        firebaseModules: firebaseModules,
         themeColor: themeColor!,
         authType: authType,
         logger: logger,
@@ -204,7 +242,13 @@ class CreateCommand extends Command<int> {
         ..success('✨ Flutter app created: $projectName')
         ..success('🎨 Theme: ${_getThemeEmoji(themeColor)} $themeColor')
         ..success('🔐 Auth: ${_getAuthTypeDisplay(authType)}')
-        ..success('🔥 Firebase: ${includeFirebase ? 'Enabled' : 'Disabled'}')
+        ..success('🔥 Firebase: ${includeFirebase ? 'Enabled' : 'Disabled'}');
+      
+      if (includeFirebase && firebaseModules.isNotEmpty) {
+        logger.success('   Modules: ${firebaseModules.join(', ')}');
+      }
+      
+      logger
         ..info('')
         ..info('Next steps:')
         ..info('  1. cd $projectName')
@@ -222,8 +266,20 @@ class CreateCommand extends Command<int> {
         ..info('  • Custom app bar & bottom navigation')
         ..info('  • Dialog & snackbar helpers');
 
-      if (includeFirebase) {
-        logger.info('  • Firebase integration ready');
+      if (includeFirebase && firebaseModules.isNotEmpty) {
+        logger.info('  • Firebase operations file (CRUD ready)');
+        if (firebaseModules.contains('auth')) {
+          logger.info('    - Authentication (sign up, sign in, profile)');
+        }
+        if (firebaseModules.contains('firestore')) {
+          logger.info('    - Firestore (CRUD, queries, real-time streams)');
+        }
+        if (firebaseModules.contains('storage')) {
+          logger.info('    - Storage (upload, download, delete files)');
+        }
+        if (firebaseModules.contains('fcm')) {
+          logger.info('    - Cloud Messaging (push notifications)');
+        }
       }
       
       logger.info('');
