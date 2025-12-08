@@ -442,11 +442,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Contact
 
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Email: your.email@example.com
+- GitHub: [@ajaychikshetty](https://github.com/ajaychikshetty)
+- Email: ajaychikshetty123@gmail.com
 
 ## ⭐ Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=yourusername/superapp_cli&type=Date)](https://star-history.com/#yourusername/superapp_cli&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=yourusername/superapp_cli&type=Date)](https://star-history.com/#ajaychikshetty/superapp_cli&Date)
 
 ---

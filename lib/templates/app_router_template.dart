@@ -1,5 +1,20 @@
 class AppRouterTemplate {
-  static String generate(String projectName) {
+  static String generate(String projectName, {bool includeChatbot = false}) {
+    // Build the chatbot import if needed
+    final chatbotImport = includeChatbot
+        ? "import '../../features/chatbot/screens/chatbot_screen.dart';"
+        : '';
+    
+    // Build the chatbot route if needed
+    final chatbotRoute = includeChatbot
+        ? '''
+        GoRoute(
+          path: 'chatbot',
+          name: 'chatbot',
+          builder: (context, state) => const ChatbotScreen(),
+        ),'''
+        : '';
+
     return '''
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +23,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
+$chatbotImport
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
@@ -22,7 +38,7 @@ final GoRouter appRouter = GoRouter(
           path: 'profile',
           name: 'profile',
           builder: (context, state) => const ProfileScreen(),
-        ),
+        ),$chatbotRoute
       ],
     ),
     GoRoute(

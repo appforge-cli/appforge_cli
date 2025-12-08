@@ -1,7 +1,6 @@
 // ignore: unused_import
 import 'dart:io';
 import 'package:args/command_runner.dart';
-// ignore: unused_import
 import 'package:interact/interact.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:superapp_cli/generators/project_generator.dart';
@@ -83,7 +82,6 @@ class CreateCommand extends Command<int> {
     // Allowed options
     final allowedStates = ['provider', 'riverpod', 'bloc'];
     final allowedThemes = ['blue', 'green', 'coffee', 'purple', 'orange'];
-    // ignore: unused_local_variable
     final allowedAuthTypes = [
       'email_password',
       'username_password',
@@ -152,6 +150,16 @@ class CreateCommand extends Command<int> {
       logger.detail('No auth type provided; defaulting to "email_password" in non-interactive mode.');
     }
 
+    // Prompt for Chatbot
+    bool includeChatbot = false;
+    if (!nonInteractive) {
+      logger.info('');
+      includeChatbot = logger.confirm(
+        '🤖 Include AI Chatbot (Gemini)?',
+        defaultValue: false,
+      );
+    }
+
     // Prompt for Firebase if not provided
     List<String> firebaseModules = [];
     if (includeFirebase == null && !nonInteractive) {
@@ -201,6 +209,7 @@ class CreateCommand extends Command<int> {
         ..info('  State Management: $stateManagement')
         ..info('  Theme: ${_getThemeEmoji(themeColor!)} $themeColor')
         ..info('  Auth Type: ${_getAuthTypeDisplay(authType)}')
+        ..info('  AI Chatbot: ${includeChatbot ? '🤖 Yes' : '✗ No'}')
         ..info('  Firebase: ${includeFirebase ? '🔥 Yes' : '✗ No'}');
       
       if (includeFirebase && firebaseModules.isNotEmpty) {
@@ -229,6 +238,7 @@ class CreateCommand extends Command<int> {
         stateManagement: stateManagement!,
         includeFirebase: includeFirebase,
         firebaseModules: firebaseModules,
+        includeChatbot: includeChatbot,
         themeColor: themeColor!,
         authType: authType,
         logger: logger,
@@ -242,6 +252,7 @@ class CreateCommand extends Command<int> {
         ..success('✨ Flutter app created: $projectName')
         ..success('🎨 Theme: ${_getThemeEmoji(themeColor)} $themeColor')
         ..success('🔐 Auth: ${_getAuthTypeDisplay(authType)}')
+        ..success('🤖 AI Chatbot: ${includeChatbot ? 'Enabled (Gemini)' : 'Disabled'}')
         ..success('🔥 Firebase: ${includeFirebase ? 'Enabled' : 'Disabled'}');
       
       if (includeFirebase && firebaseModules.isNotEmpty) {
@@ -251,8 +262,16 @@ class CreateCommand extends Command<int> {
       logger
         ..info('')
         ..info('Next steps:')
-        ..info('  1. cd $projectName')
-        ..info('  2. flutter run')
+        ..info('  1. cd $projectName');
+      
+      if (includeChatbot) {
+        logger.info('  2. Add your Gemini API key in lib/core/constants/app_constants.dart');
+        logger.info('  3. flutter run');
+      } else {
+        logger.info('  2. flutter run');
+      }
+      
+      logger
         ..info('')
         ..info('📱 Your app includes:')
         ..info('  • Splash Screen with smooth transitions')
@@ -265,6 +284,12 @@ class CreateCommand extends Command<int> {
         ..info('  • 12+ reusable widgets (cards, buttons, loaders, etc.)')
         ..info('  • Custom app bar & bottom navigation')
         ..info('  • Dialog & snackbar helpers');
+
+      if (includeChatbot) {
+        logger.info('  • AI Chatbot powered by Google Gemini');
+        logger.info('  • Beautiful chat UI with message bubbles');
+        logger.info('  • Real-time typing indicators');
+      }
 
       if (includeFirebase && firebaseModules.isNotEmpty) {
         logger.info('  • Firebase operations file (CRUD ready)');

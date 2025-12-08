@@ -3,7 +3,8 @@ class PubspecTemplate {
     required String projectName,
     required String stateManagement,
     required bool includeFirebase,
-    List<String> firebaseModules = const [], // ← ADDED THIS LINE
+    List<String> firebaseModules = const [],
+    bool includeChatbot = false, // ← ADDED THIS PARAMETER
   }) {
     // Build dependencies list
     final stateManagementDeps = <String>[];
@@ -54,6 +55,23 @@ class PubspecTemplate {
       }
     }
 
+    // Chatbot dependencies
+    final chatbotDeps = <String>[];
+    if (includeChatbot) {
+      chatbotDeps.addAll([
+        '  # AI Chatbot',
+        '  dio: ^5.7.0',
+        '  flutter_bloc: ^8.1.6',
+        '  equatable: ^2.0.7',
+      ]);
+      
+      // Remove duplicates if bloc is already added for state management
+      if (stateManagement == 'bloc') {
+        chatbotDeps.removeWhere((dep) => 
+          dep.contains('flutter_bloc') || dep.contains('equatable'));
+      }
+    }
+
     return '''
 name: $projectName
 description: A production-ready Flutter application
@@ -74,10 +92,11 @@ dependencies:
 ${stateManagementDeps.isEmpty ? '  # No state management selected' : stateManagementDeps.join('\n')}
   
 ${firebaseDeps.isEmpty ? '' : '  # Firebase\n${firebaseDeps.join('\n')}\n  '}
+${chatbotDeps.isEmpty ? '' : '${chatbotDeps.join('\n')}\n  '}
   # Utilities
   http: ^1.2.2
   shared_preferences: ^2.3.3
-  dio: ^5.7.0
+  ${includeChatbot ? '# dio already included for chatbot' : 'dio: ^5.7.0'}
 
 dev_dependencies:
   flutter_test:

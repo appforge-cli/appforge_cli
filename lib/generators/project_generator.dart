@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as path;
+import 'package:superapp_cli/templates/ChatbotTemplates.dart' show ChatbotTemplates;
 import 'package:superapp_cli/templates/app_router_template.dart';
 import 'package:superapp_cli/templates/firebase_operations_template.dart';
 import 'package:superapp_cli/templates/main_template.dart';
@@ -17,6 +18,7 @@ class ProjectGenerator {
     required this.stateManagement,
     required this.includeFirebase,
     this.firebaseModules = const [],
+    this.includeChatbot = false,
     required this.themeColor,
     required this.authType,
     required this.logger,
@@ -27,6 +29,7 @@ class ProjectGenerator {
   final String stateManagement;
   final bool includeFirebase;
   final List<String> firebaseModules;
+  final bool includeChatbot;
   final String themeColor;
   final String authType;
   final Logger logger;
@@ -47,27 +50,32 @@ class ProjectGenerator {
     // Step 5: Generate reusable widgets
     await _generateReusableWidgets();
 
-    // Step 6: Generate Firebase operations if enabled
+    // Step 6: Generate chatbot if enabled
+    if (includeChatbot) {
+      await _generateChatbot();
+    }
+
+    // Step 7: Generate Firebase operations if enabled
     if (includeFirebase && firebaseModules.isNotEmpty) {
       await _generateFirebaseOperations();
     }
 
-    // Step 7: Generate screens
+    // Step 8: Generate screens
     await _generateScreens();
 
-    // Step 8: Generate router
+    // Step 9: Generate router
     await _generateRouter();
 
-    // Step 9: Generate main.dart
+    // Step 10: Generate main.dart
     await _generateMainFile();
 
-    // Step 10: Replace default test with a compatible smoke test
+    // Step 11: Replace default test with a compatible smoke test
     await _generateTestFile();
 
-    // Step 11: Run flutter pub get
+    // Step 12: Run flutter pub get
     await _runFlutterPubGet();
 
-    // Step 12: Configure Firebase if needed
+    // Step 13: Configure Firebase if needed
     if (includeFirebase) {
       await _configureFirebase();
     }
@@ -122,6 +130,111 @@ class ProjectGenerator {
 
     // Generate barrel file for easy imports
     await _generateWidgetsBarrelFile(widgetsDir, widgets.keys.toList());
+  }
+
+  Future<void> _generateChatbot() async {
+    logger.info('🤖 Generating AI Chatbot with BLoC...');
+    
+    final chatbotBasePath = path.join(projectName, 'lib', 'features', 'chatbot');
+    
+    // Create all necessary directories
+    final directories = [
+      path.join(chatbotBasePath, 'screens'),
+      path.join(chatbotBasePath, 'services'),
+      path.join(chatbotBasePath, 'models'),
+      path.join(chatbotBasePath, 'bloc'),
+    ];
+    
+    for (final dir in directories) {
+      await Directory(dir).create(recursive: true);
+    }
+
+    // Generate Chatbot Screen (with BLoC)
+    final chatbotScreenPath = path.join(chatbotBasePath, 'screens', 'chatbot_screen.dart');
+    await FileUtils.writeFile(
+      chatbotScreenPath,
+      ChatbotTemplates.generateChatScreen(projectName),
+    );
+    logger.detail('✓ Generated chatbot_screen.dart');
+
+    // Generate Chatbot Service
+    final chatbotServicePath = path.join(chatbotBasePath, 'services', 'chatbot_service.dart');
+    await FileUtils.writeFile(
+      chatbotServicePath,
+      ChatbotTemplates.generateChatbotService(projectName),
+    );
+    logger.detail('✓ Generated chatbot_service.dart');
+
+    // Generate Chat Message Model
+    final chatMessageModelPath = path.join(chatbotBasePath, 'models', 'chat_message_model.dart');
+    await FileUtils.writeFile(
+      chatMessageModelPath,
+      ChatbotTemplates.generateChatMessageModel(),
+    );
+    logger.detail('✓ Generated chat_message_model.dart');
+
+    // Generate BLoC files
+    final blocPath = path.join(chatbotBasePath, 'bloc');
+    
+    // Generate chatbot_bloc.dart
+    await FileUtils.writeFile(
+      path.join(blocPath, 'chatbot_bloc.dart'),
+      ChatbotTemplates.generateChatbotBloc(),
+    );
+    logger.detail('✓ Generated chatbot_bloc.dart');
+
+    // Generate chatbot_event.dart
+    await FileUtils.writeFile(
+      path.join(blocPath, 'chatbot_event.dart'),
+      ChatbotTemplates.generateChatbotEvent(),
+    );
+    logger.detail('✓ Generated chatbot_event.dart');
+
+    // Generate chatbot_state.dart
+    await FileUtils.writeFile(
+      path.join(blocPath, 'chatbot_state.dart'),
+      ChatbotTemplates.generateChatbotState(),
+    );
+    logger.detail('✓ Generated chatbot_state.dart');
+
+    // Generate app_constants.dart
+    final constantsDir = path.join(projectName, 'lib', 'core', 'constants');
+    await Directory(constantsDir).create(recursive: true);
+    
+    final appConstantsPath = path.join(constantsDir, 'app_constants.dart');
+    await FileUtils.writeFile(
+      appConstantsPath,
+      ChatbotTemplates.generateAppConstants(),
+    );
+    logger.detail('✓ Generated app_constants.dart');
+
+    // Generate .env files
+    final envPath = path.join(projectName, '.env');
+    await FileUtils.writeFile(envPath, ChatbotTemplates.generateEnvFile());
+    logger.detail('✓ Generated .env file');
+
+    final envExamplePath = path.join(projectName, '.env.example');
+    await FileUtils.writeFile(envExamplePath, ChatbotTemplates.generateEnvExampleFile());
+    logger.detail('✓ Generated .env.example file');
+
+    // Update .gitignore
+    final gitignorePath = path.join(projectName, '.gitignore');
+    final gitignoreExists = await File(gitignorePath).exists();
+    
+    if (gitignoreExists) {
+      final currentContent = await File(gitignorePath).readAsString();
+      final addition = ChatbotTemplates.generateGitignoreAddition();
+      
+      if (!currentContent.contains('.env')) {
+        await File(gitignorePath).writeAsString(
+          currentContent + addition,
+          mode: FileMode.append,
+        );
+        logger.detail('✓ Updated .gitignore');
+      }
+    }
+
+    logger.success('✨ Chatbot generated successfully with BLoC state management!');
   }
 
   Future<void> _generateWidgetsBarrelFile(String widgetsDir, List<String> fileNames) async {
@@ -299,7 +412,7 @@ $exports
     final routerPath = path.join(projectName, 'lib', 'app', 'router', 'app_router.dart');
     await Directory(path.dirname(routerPath)).create(recursive: true);
 
-    final content = AppRouterTemplate.generate(projectName);
+    final content = AppRouterTemplate.generate(projectName, includeChatbot: includeChatbot);
     await FileUtils.writeFile(routerPath, content);
     logger.detail('Generated router at $routerPath');
   }
@@ -367,6 +480,10 @@ void main() {
       'features/home/models',
       'features/profile/screens',
       'features/profile/widgets',
+      'features/chatbot/screens',
+      'features/chatbot/services',
+      'features/chatbot/models',
+      'features/chatbot/bloc',
       'shared/widgets',
       'shared/services',
       'shared/utils',
@@ -377,6 +494,7 @@ void main() {
       'core/storage',
       'core/config',
       'core/firebase',
+      'core/constants',
       'config',
       'models',
       'providers',
@@ -398,6 +516,7 @@ void main() {
       stateManagement: stateManagement,
       includeFirebase: includeFirebase,
       firebaseModules: firebaseModules,
+      includeChatbot: includeChatbot,
     );
     await FileUtils.writeFile(pubspecPath, content);
     logger.detail('Generated pubspec.yaml');
