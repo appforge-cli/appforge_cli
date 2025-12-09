@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as path;
+import 'package:superapp_cli/templates/app_localization_template.dart' show LocalizationTemplates;
 import 'package:superapp_cli/templates/app_router_template.dart';
-import 'package:superapp_cli/templates/chatbot_templates.dart' show ChatbotTemplates;
 import 'package:superapp_cli/templates/docker_templates.dart' show DockerTemplates;
 import 'package:superapp_cli/templates/firebase_operations_template.dart';
 import 'package:superapp_cli/templates/main_template.dart';
@@ -11,6 +11,8 @@ import 'package:superapp_cli/templates/theme_template.dart';
 import 'package:superapp_cli/templates/screen_templates.dart';
 import 'package:superapp_cli/templates/widgets_template.dart' show ReusableWidgetsTemplate;
 import 'package:superapp_cli/utils/file_utils.dart';
+
+import '../templates/chatbot_templates.dart';
 
 class ProjectGenerator {
   ProjectGenerator({
@@ -21,6 +23,7 @@ class ProjectGenerator {
     this.firebaseModules = const [],
     this.includeChatbot = false,
     this.includeDocker = false,
+    this.selectedLanguages = const ['en'],
     required this.themeColor,
     required this.authType,
     required this.logger,
@@ -33,6 +36,7 @@ class ProjectGenerator {
   final List<String> firebaseModules;
   final bool includeChatbot;
   final bool includeDocker;
+  final List<String> selectedLanguages;
   final String themeColor;
   final String authType;
   final Logger logger;
@@ -86,6 +90,11 @@ class ProjectGenerator {
     // Step 14: Generate Docker setup if enabled
     if (includeDocker) {
       await _generateDockerSetup();
+    }
+
+    // Step 15: Generate localization files
+    if (selectedLanguages.isNotEmpty) {
+      await _generateLocalization();
     }
 
     logger.success('✨ Project generated successfully with $themeColor theme!');
@@ -453,6 +462,7 @@ void main() {
       includeFirebase: includeFirebase,
       useRouter: true,
       useTheme: true,
+      includeLocalization: selectedLanguages.length > 1,
     );
     await FileUtils.writeFile(mainPath, content);
     logger.detail('Generated main.dart at $mainPath');
@@ -663,5 +673,78 @@ void main() {
     logger.info('  make logs       - View logs');
     logger.info('');
     logger.info('📖 See DOCKER.md for complete documentation');
+  }
+
+  Future<void> _generateLocalization() async {
+    logger.info('');
+    logger.info('🌍 Generating localization files...');
+
+    // Create l10n directory
+    final l10nDir = path.join(projectName, 'lib', 'l10n');
+    await Directory(l10nDir).create(recursive: true);
+
+    // Generate l10n.yaml
+    final l10nConfigPath = path.join(projectName, 'l10n.yaml');
+    await FileUtils.writeFile(
+      l10nConfigPath,
+      LocalizationTemplates.generateL10nConfig(selectedLanguages),
+    );
+    logger.detail('✓ Generated l10n.yaml');
+
+    // Generate English ARB (template)
+    final enArbPath = path.join(l10nDir, 'app_en.arb');
+    await FileUtils.writeFile(enArbPath, LocalizationTemplates.generateEnglishArb());
+    logger.detail('✓ Generated app_en.arb (template)');
+
+    // Generate ARB files for other selected languages
+    for (final lang in selectedLanguages) {
+      if (lang != 'en') {
+        final arbPath = path.join(l10nDir, 'app_$lang.arb');
+        await FileUtils.writeFile(
+          arbPath,
+          LocalizationTemplates.generateArbFile(lang),
+        );
+        logger.detail('✓ Generated app_$lang.arb');
+      }
+    }
+
+    // Generate LocaleProvider
+    final providersDir = path.join(projectName, 'lib', 'core', 'providers');
+    await Directory(providersDir).create(recursive: true);
+
+    final localeProviderPath = path.join(providersDir, 'locale_provider.dart');
+    await FileUtils.writeFile(
+      localeProviderPath,
+      LocalizationTemplates.generateLocaleProvider(projectName),
+    );
+    logger.detail('✓ Generated locale_provider.dart');
+
+    // Generate LanguageSelector widget
+    final languageSelectorPath = path.join(
+      projectName,
+      'lib',
+      'shared',
+      'widgets',
+      'language_selector.dart',
+    );
+    await FileUtils.writeFile(
+      languageSelectorPath,
+      LocalizationTemplates.generateLanguageSelector(projectName),
+    );
+    logger.detail('✓ Generated language_selector.dart');
+
+    // Generate LOCALIZATION.md
+    final localizationReadmePath = path.join(projectName, 'LOCALIZATION.md');
+    await FileUtils.writeFile(
+      localizationReadmePath,
+      LocalizationTemplates.generateLocalizationReadme(),
+    );
+    logger.detail('✓ Generated LOCALIZATION.md');
+
+    logger.success('✨ Localization generated successfully!');
+    logger.info('');
+    logger.info('🌍 Supported Languages: ${selectedLanguages.join(', ')}');
+    logger.info('');
+    logger.info('📖 See LOCALIZATION.md for usage guide');
   }
 }

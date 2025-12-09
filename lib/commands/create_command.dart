@@ -38,6 +38,12 @@ class CreateCommand extends Command<int> {
         defaultsTo: false,
       )
       ..addFlag(
+        'docker',
+        abbr: 'd',
+        help: 'Include Docker setup for deployment',
+        defaultsTo: false,
+      )
+      ..addFlag(
         'yes',
         abbr: 'y',
         help: 'Run non-interactively with sensible defaults',
@@ -69,6 +75,10 @@ class CreateCommand extends Command<int> {
     // Check if firebase flag was explicitly provided
     final firebaseFlagProvided = argResults?.wasParsed('firebase') ?? false;
     bool? includeFirebase = firebaseFlagProvided ? (argResults?['firebase'] as bool?) : null;
+
+    // Check if docker flag was explicitly provided
+    final dockerFlagProvided = argResults?.wasParsed('docker') ?? false;
+    bool? includeDocker = dockerFlagProvided ? (argResults?['docker'] as bool?) : null;
 
     // Non-interactive flags
     final nonInteractive = (argResults?['yes'] as bool) == true ||
@@ -199,6 +209,65 @@ class CreateCommand extends Command<int> {
       firebaseModules = ['core', 'auth', 'firestore', 'storage', 'fcm'];
     }
 
+    // Prompt for Docker if not provided
+    if (includeDocker == null && !nonInteractive) {
+      logger.info('');
+      includeDocker = logger.confirm(
+        '🐳 Include Docker setup for deployment?',
+        defaultValue: false,
+      );
+    } else if (includeDocker == null) {
+      includeDocker = false;
+      logger.detail('Docker not specified; defaulting to false in non-interactive mode.');
+    }
+
+    // Prompt for localization
+    List<String> selectedLanguages = ['en']; // English is always included
+    if (!nonInteractive) {
+      logger.info('');
+      final wantsLocalization = logger.confirm(
+        '🌍 Enable multi-language support?',
+        defaultValue: false,
+      );
+
+      if (wantsLocalization) {
+        logger.info('');
+        logger.info('Select additional languages (English is already included):');
+        
+        final availableLanguages = [
+          'es - Spanish (Español)',
+          'fr - French (Français)',
+          'de - German (Deutsch)',
+          'it - Italian (Italiano)',
+          'pt - Portuguese (Português)',
+          'ru - Russian (Русский)',
+          'zh - Chinese (中文)',
+          'ja - Japanese (日本語)',
+          'ar - Arabic (العربية)',
+          'hi - Hindi (हिन्दी)',
+          'bn - Bengali (বাংলা)',
+          'te - Telugu (తెలుగు)',
+          'mr - Marathi (मराठी)',
+          'ta - Tamil (தமிழ்)',
+          'gu - Gujarati (ગુજરાતી)',
+          'kn - Kannada (ಕನ್ನಡ)',
+          'ml - Malayalam (മലയാളം)',
+          'pa - Punjabi (ਪੰਜਾਬੀ)',
+          'or - Odia (ଓଡ଼ିଆ)',
+        ];
+
+        final selected = logger.chooseAny(
+          '📦 Select languages (space to select, enter to continue):',
+          choices: availableLanguages,
+          defaultValues: [],
+        );
+
+        // Extract language codes
+        final langCodes = selected.map((s) => s.split(' ').first).toList();
+        selectedLanguages.addAll(langCodes.cast<String>());
+      }
+    }
+
     // Show summary before proceeding
     if (!nonInteractive) {
       logger
@@ -210,7 +279,9 @@ class CreateCommand extends Command<int> {
         ..info('  Theme: ${_getThemeEmoji(themeColor!)} $themeColor')
         ..info('  Auth Type: ${_getAuthTypeDisplay(authType)}')
         ..info('  AI Chatbot: ${includeChatbot ? '🤖 Yes' : '✗ No'}')
-        ..info('  Firebase: ${includeFirebase ? '🔥 Yes' : '✗ No'}');
+        ..info('  Firebase: ${includeFirebase ? '🔥 Yes' : '✗ No'}')
+        ..info('  Docker: ${includeDocker ? '🐳 Yes' : '✗ No'}')
+        ..info('  Languages: 🌍 ${selectedLanguages.join(', ')}');
       
       if (includeFirebase && firebaseModules.isNotEmpty) {
         logger.info('  Firebase Modules: ${firebaseModules.join(', ')}');
@@ -239,6 +310,8 @@ class CreateCommand extends Command<int> {
         includeFirebase: includeFirebase,
         firebaseModules: firebaseModules,
         includeChatbot: includeChatbot,
+        includeDocker: includeDocker,
+        selectedLanguages: selectedLanguages,
         themeColor: themeColor!,
         authType: authType,
         logger: logger,
@@ -253,7 +326,9 @@ class CreateCommand extends Command<int> {
         ..success('🎨 Theme: ${_getThemeEmoji(themeColor)} $themeColor')
         ..success('🔐 Auth: ${_getAuthTypeDisplay(authType)}')
         ..success('🤖 AI Chatbot: ${includeChatbot ? 'Enabled (Gemini)' : 'Disabled'}')
-        ..success('🔥 Firebase: ${includeFirebase ? 'Enabled' : 'Disabled'}');
+        ..success('🔥 Firebase: ${includeFirebase ? 'Enabled' : 'Disabled'}')
+        ..success('🐳 Docker: ${includeDocker ? 'Enabled' : 'Disabled'}')
+        ..success('🌍 Languages: ${selectedLanguages.join(', ')}');
       
       if (includeFirebase && firebaseModules.isNotEmpty) {
         logger.success('   Modules: ${firebaseModules.join(', ')}');
@@ -269,6 +344,16 @@ class CreateCommand extends Command<int> {
         logger.info('  3. flutter run');
       } else {
         logger.info('  2. flutter run');
+      }
+
+      if (includeDocker) {
+        logger
+          ..info('')
+          ..info('🐳 Docker is ready!')
+          ..info('  • make build    - Build Docker image')
+          ..info('  • make run      - Run production')
+          ..info('  • make dev      - Development with hot-reload')
+          ..info('  • See DOCKER.md for complete documentation');
       }
       
       logger
@@ -289,6 +374,7 @@ class CreateCommand extends Command<int> {
         logger.info('  • AI Chatbot powered by Google Gemini');
         logger.info('  • Beautiful chat UI with message bubbles');
         logger.info('  • Real-time typing indicators');
+        logger.info('  • BLoC state management for chat');
       }
 
       if (includeFirebase && firebaseModules.isNotEmpty) {
@@ -305,6 +391,21 @@ class CreateCommand extends Command<int> {
         if (firebaseModules.contains('fcm')) {
           logger.info('    - Cloud Messaging (push notifications)');
         }
+      }
+
+      if (includeDocker) {
+        logger.info('  • Docker multi-stage build (Flutter + Nginx)');
+        logger.info('  • Docker Compose for easy orchestration');
+        logger.info('  • Production-ready with PostgreSQL & Redis');
+        logger.info('  • Makefile for convenient commands');
+        logger.info('  • GitHub Actions CI/CD workflow');
+      }
+
+      if (selectedLanguages.length > 1) {
+        logger.info('  • Multi-language support (${selectedLanguages.length} languages)');
+        logger.info('  • Language selector widget');
+        logger.info('  • Persistent language preference');
+        logger.info('  • RTL support for Arabic');
       }
       
       logger.info('');

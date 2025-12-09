@@ -4,7 +4,8 @@ class PubspecTemplate {
     required String stateManagement,
     required bool includeFirebase,
     List<String> firebaseModules = const [],
-    bool includeChatbot = false, // ← ADDED THIS PARAMETER
+    bool includeChatbot = false,
+    List<String> selectedLanguages = const ['en'],
   }) {
     // Build dependencies list
     final stateManagementDeps = <String>[];
@@ -84,6 +85,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
   
   # Routing
   go_router: ^14.6.2
@@ -106,6 +110,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true
 
   # assets:
   #   - images/
