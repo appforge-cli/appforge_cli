@@ -1,8 +1,9 @@
 import 'dart:io';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as path;
-import 'package:superapp_cli/templates/app_localization_template.dart' show LocalizationTemplates;
+import 'package:superapp_cli/templates/app_localization_template.dart';
 import 'package:superapp_cli/templates/app_router_template.dart';
+import 'package:superapp_cli/templates/chatbot_templates.dart' show ChatbotTemplates;
 import 'package:superapp_cli/templates/docker_templates.dart' show DockerTemplates;
 import 'package:superapp_cli/templates/firebase_operations_template.dart';
 import 'package:superapp_cli/templates/main_template.dart';
@@ -11,8 +12,6 @@ import 'package:superapp_cli/templates/theme_template.dart';
 import 'package:superapp_cli/templates/screen_templates.dart';
 import 'package:superapp_cli/templates/widgets_template.dart' show ReusableWidgetsTemplate;
 import 'package:superapp_cli/utils/file_utils.dart';
-
-import '../templates/chatbot_templates.dart';
 
 class ProjectGenerator {
   ProjectGenerator({
@@ -93,7 +92,7 @@ class ProjectGenerator {
     }
 
     // Step 15: Generate localization files
-    if (selectedLanguages.isNotEmpty) {
+    if (selectedLanguages.isNotEmpty && selectedLanguages.length > 1) {
       await _generateLocalization();
     }
 
@@ -744,6 +743,23 @@ void main() {
     logger.success('✨ Localization generated successfully!');
     logger.info('');
     logger.info('🌍 Supported Languages: ${selectedLanguages.join(', ')}');
+    logger.info('');
+    logger.info('Generating localization files...');
+    
+    // Run flutter gen-l10n to generate the localization files
+    final genL10nResult = await Process.run(
+      'flutter',
+      ['gen-l10n'],
+      workingDirectory: projectName,
+    );
+
+    if (genL10nResult.exitCode == 0) {
+      logger.success('✓ Localization files generated successfully');
+    } else {
+      logger.warn('Warning: flutter gen-l10n failed. You may need to run it manually.');
+      logger.detail('Run: cd $projectName && flutter gen-l10n');
+    }
+    
     logger.info('');
     logger.info('📖 See LOCALIZATION.md for usage guide');
   }

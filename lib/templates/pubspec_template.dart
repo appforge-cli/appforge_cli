@@ -12,6 +12,10 @@ class PubspecTemplate {
     switch (stateManagement) {
       case 'riverpod':
         stateManagementDeps.add('  flutter_riverpod: ^2.6.1');
+        // Add provider if localization is enabled (for LocaleProvider)
+        if (selectedLanguages.length > 1) {
+          stateManagementDeps.add('  provider: ^6.1.2');
+        }
         break;
       case 'provider':
         stateManagementDeps.add('  provider: ^6.1.2');
@@ -19,6 +23,10 @@ class PubspecTemplate {
       case 'bloc':
         stateManagementDeps.add('  flutter_bloc: ^8.1.6');
         stateManagementDeps.add('  equatable: ^2.0.7');
+        // Add provider if localization is enabled (for LocaleProvider)
+        if (selectedLanguages.length > 1) {
+          stateManagementDeps.add('  provider: ^6.1.2');
+        }
         break;
     }
 

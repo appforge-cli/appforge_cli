@@ -7,6 +7,7 @@ class MainTemplate {
     required bool useTheme,
     bool includeLocalization = false,
   }) {
+    // --- Firebase imports block ---
     final firebaseImports = includeFirebase
         ? '''
 import 'package:firebase_core/firebase_core.dart';
@@ -14,52 +15,30 @@ import 'package:firebase_core/firebase_core.dart';
 '''
         : '';
 
+    // --- Localization imports block (your actual setup) ---
     final localizationImports = includeLocalization
         ? '''
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:$projectName/l10n/app_localizations.dart';
+import 'package:provider/provider.dart' as provider_pkg;
 import 'package:$projectName/core/providers/locale_provider.dart';
 '''
         : '';
 
+    // --- Firebase init code in main() ---
     final firebaseInit = includeFirebase
         ? '''
-//  await Firebase.initializeApp(
-//    options: DefaultFirebaseOptions.currentPlatform,
-//  );
+  // await Firebase.initializeApp(
+  //   options: DefaultFirebaseOptions.currentPlatform,
+  // );
 '''
         : '';
 
+    // --- Localization config inside MaterialApp.router ---
     final localizationSupport = includeLocalization
         ? '''
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('en'),
-        Locale('es'),
-        Locale('fr'),
-        Locale('de'),
-        Locale('it'),
-        Locale('pt'),
-        Locale('ru'),
-        Locale('zh'),
-        Locale('ja'),
-        Locale('ar'),
-        Locale('hi'),
-        Locale('bn'),
-        Locale('te'),
-        Locale('mr'),
-        Locale('ta'),
-        Locale('gu'),
-        Locale('kn'),
-        Locale('ml'),
-        Locale('pa'),
-        Locale('or'),
-      ],
+      // Localization
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       locale: localeProvider.locale,
 '''
         : '';
@@ -70,41 +49,31 @@ import 'package:$projectName/core/providers/locale_provider.dart';
 
     switch (stateManagement) {
       case 'riverpod':
-        stateManagementSetup = '''
+        if (includeLocalization) {
+          // riverpod + localization
+          stateManagementSetup = '''
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 $firebaseInit
-  runApp(${includeLocalization ? 'const ProviderScope(child: LocaleWrapper())' : 'const ProviderScope(child: MyApp())'});
+  runApp(
+    ProviderScope(
+      child: provider_pkg.ChangeNotifierProvider(
+        create: (_) => LocaleProvider(),
+        child: const MyApp(),
+      ),
+    ),
+  );
 }
 ''';
-        
-        if (includeLocalization) {
           appWidget = '''
-class LocaleWrapper extends ConsumerWidget {
-  const LocaleWrapper({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ChangeNotifierProvider(
-      create: (_) => LocaleProvider(),
-      child: Consumer<LocaleProvider>(
-        builder: (context, localeProvider, _) {
-          return const MyApp();
-        },
-      ),
-    );
-  }
-}
-
 class MyApp extends ConsumerWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final localeProvider = Provider.of<LocaleProvider>(context);
-    final router = ref.watch(appRouterProvider);
+    final localeProvider = provider_pkg.Provider.of<LocaleProvider>(context);
 
     return MaterialApp.router(
       title: 'Flutter App',
@@ -113,27 +82,35 @@ class MyApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
 $localizationSupport
-      routerConfig: router,
+      routerConfig: appRouter,
     );
   }
 }
 ''';
         } else {
+          // riverpod without localization
+          stateManagementSetup = '''
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+$firebaseInit
+  runApp(const ProviderScope(child: MyApp()));
+}
+''';
           appWidget = '''
 class MyApp extends ConsumerWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final router = ref.watch(appRouterProvider);
-
     return MaterialApp.router(
       title: 'Flutter App',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      routerConfig: router,
+      routerConfig: appRouter,
     );
   }
 }
@@ -142,17 +119,21 @@ class MyApp extends ConsumerWidget {
         break;
 
       case 'provider':
-        stateManagementSetup = '''
+        if (includeLocalization) {
+          stateManagementSetup = '''
 import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 $firebaseInit
-  runApp(${includeLocalization ? 'ChangeNotifierProvider(\n    create: (_) => LocaleProvider(),\n    child: const MyApp(),\n  )' : 'const MyApp()'});
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => LocaleProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 ''';
-
-        if (includeLocalization) {
           appWidget = '''
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -174,6 +155,15 @@ $localizationSupport
 }
 ''';
         } else {
+          stateManagementSetup = '''
+import 'package:provider/provider.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+$firebaseInit
+  runApp(const MyApp());
+}
+''';
           appWidget = '''
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -195,17 +185,22 @@ class MyApp extends StatelessWidget {
         break;
 
       case 'bloc':
-        stateManagementSetup = '''
+        if (includeLocalization) {
+          stateManagementSetup = '''
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 $firebaseInit
-  runApp(${includeLocalization ? 'ChangeNotifierProvider(\n    create: (_) => LocaleProvider(),\n    child: const MyApp(),\n  )' : 'const MyApp()'});
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => LocaleProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 ''';
-
-        if (includeLocalization) {
           appWidget = '''
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -227,6 +222,15 @@ $localizationSupport
 }
 ''';
         } else {
+          stateManagementSetup = '''
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+$firebaseInit
+  runApp(const MyApp());
+}
+''';
           appWidget = '''
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -248,14 +252,50 @@ class MyApp extends StatelessWidget {
         break;
 
       default:
-        stateManagementSetup = '''
+        if (includeLocalization) {
+          stateManagementSetup = '''
+import 'package:provider/provider.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 $firebaseInit
-  runApp(${includeLocalization ? 'ChangeNotifierProvider(\n    create: (_) => LocaleProvider(),\n    child: const MyApp(),\n  )' : 'const MyApp()'});
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => LocaleProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 ''';
-        appWidget = '''
+          appWidget = '''
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final localeProvider = Provider.of<LocaleProvider>(context);
+
+    return MaterialApp.router(
+      title: 'Flutter App',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
+$localizationSupport
+      routerConfig: appRouter,
+    );
+  }
+}
+''';
+        } else {
+          stateManagementSetup = '''
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+$firebaseInit
+  runApp(const MyApp());
+}
+''';
+          appWidget = '''
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
@@ -272,6 +312,7 @@ class MyApp extends StatelessWidget {
   }
 }
 ''';
+        }
     }
 
     return '''

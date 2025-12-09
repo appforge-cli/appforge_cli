@@ -6,6 +6,7 @@ class FirebaseOperationsTemplate {
     final hasFCM = modules.contains('fcm');
 
     return '''
+import 'dart:typed_data';
 import 'package:firebase_core/firebase_core.dart';
 ${hasAuth ? "import 'package:firebase_auth/firebase_auth.dart';" : ''}
 ${hasFirestore ? "import 'package:cloud_firestore/cloud_firestore.dart';" : ''}
