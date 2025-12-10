@@ -153,14 +153,14 @@ enum SocialAuthProvider { google, apple, facebook, github }
 
 class SocialAuthButton extends StatelessWidget {
   final SocialAuthProvider provider;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed; // Make onPressed nullable
   final bool isLoading;
   final double height;
 
   const SocialAuthButton({
     Key? key,
     required this.provider,
-    required this.onPressed,
+    required this.onPressed, // Still required but can be null
     this.isLoading = false,
     this.height = 56,
   }) : super(key: key);
@@ -219,7 +219,7 @@ class SocialAuthButton extends StatelessWidget {
       width: double.infinity,
       height: height,
       child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
+        onPressed: isLoading ? null : onPressed, // This now works with nullable
         style: ElevatedButton.styleFrom(
           backgroundColor: _backgroundColor,
           foregroundColor: _textColor,
@@ -712,7 +712,7 @@ class _OTPInputState extends State<OTPInput> {
       'buttons/primary_button.dart': generatePrimaryButton(),
       'buttons/secondary_button.dart': generateSecondaryButton(),
       'buttons/social_auth_button.dart': generateSocialAuthButton(),
-      
+
       // Inputs
       'inputs/app_text_field.dart': generateAppTextField(),
       'inputs/password_field.dart': generatePasswordField(),

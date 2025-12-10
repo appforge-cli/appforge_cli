@@ -701,6 +701,7 @@ void main() {
     final result = await Process.run(
       'flutter',
       ['create', '--org', organization, projectName],
+      runInShell: true,
     );
 
     if (result.exitCode != 0) {
@@ -774,6 +775,7 @@ void main() {
       'flutter',
       ['pub', 'get'],
       workingDirectory: projectName,
+      runInShell: true,
     );
 
     if (result.exitCode != 0) {
@@ -785,49 +787,160 @@ void main() {
     logger.info('');
     logger.info('🔥 Setting up Firebase...');
 
-    // Check if flutterfire CLI is installed
-    final checkResult = await Process.run('flutterfire', ['--version']);
+    // Check if Firebase CLI is installed first (required for flutterfire)
+    bool firebaseCliInstalled = await _isCommandAvailable('firebase');
+    if (!firebaseCliInstalled) {
+      logger.warn('Firebase CLI is not installed.');
+      logger.info('📦 Installing Firebase CLI...');
 
-    if (checkResult.exitCode != 0) {
-      logger.warn('FlutterFire CLI is not installed.');
+      final installResult = await Process.run(
+        'npm',
+        ['install', '-g', 'firebase-tools'],
+        runInShell: true,
+      );
+
+      if (installResult.exitCode != 0) {
+        logger.warn('Failed to install Firebase CLI. Please install manually:');
+        logger.info('  npm install -g firebase-tools');
+        logger
+            .info('  OR for Mac/Linux: curl -sL https://firebase.tools | bash');
+        logger.info('Skipping Firebase configuration...');
+        logger.info('');
+        return;
+      }
+      logger.success('✓ Firebase CLI installed successfully!');
+    }
+
+    // Check if user is logged into Firebase
+    bool isLoggedIn = await _isFirebaseLoggedIn();
+    if (!isLoggedIn) {
+      logger.warn('Not logged into Firebase CLI.');
+      logger.info('Please login to Firebase:');
+      logger.info('  1. Open a new terminal');
+      logger.info('  2. Run: firebase login');
+      logger.info('  3. Follow the authentication flow');
       logger.info('');
-      logger.info('📦 Installing FlutterFire CLI...');
-      logger.info('Run this command:');
-      logger.info('  dart pub global activate flutterfire_cli');
-      logger.info('');
-      logger.info('Then configure Firebase:');
-      logger.info('  cd $projectName');
-      logger.info('  flutterfire configure');
+      logger.info('Skipping Firebase configuration for now...');
+      logger.info('You can configure Firebase later with:');
+      logger.info('  cd $projectName && flutterfire configure');
       logger.info('');
       return;
     }
 
-    logger.info('Running flutterfire configure...');
+    // Check if flutterfire CLI is installed
+    bool flutterfireInstalled = await _isCommandAvailable('flutterfire');
+    if (!flutterfireInstalled) {
+      logger.warn('FlutterFire CLI is not installed.');
+      logger.info('📦 Installing FlutterFire CLI...');
+
+      final installResult = await Process.run(
+        'dart',
+        ['pub', 'global', 'activate', 'flutterfire_cli'],
+        runInShell: true,
+      );
+
+      if (installResult.exitCode != 0) {
+        logger.warn('Failed to install FlutterFire CLI.');
+        logger.info('Please install manually:');
+        logger.info('  dart pub global activate flutterfire_cli');
+        logger.info('');
+        logger.info('Skipping Firebase configuration for now...');
+        logger.info('You can configure Firebase later with:');
+        logger.info('  cd $projectName && flutterfire configure');
+        logger.info('');
+        return;
+      }
+      logger.success('✓ FlutterFire CLI installed successfully!');
+    }
+
     logger.info('');
-    logger.info('⚠️  You will need:');
-    logger.info(
-        '  • A Firebase project (create at https://console.firebase.google.com)');
-    logger.info('  • Firebase CLI logged in (run: firebase login)');
+    logger.info('⚠️  Running flutterfire configure...');
+    logger.info('This will:');
+    logger.info('  1. Show available Firebase projects');
+    logger.info('  2. Let you select platforms (iOS, Android, Web)');
+    logger.info('  3. Download Firebase config files');
+    logger.info('  4. Update pubspec.yaml with Firebase dependencies');
     logger.info('');
 
-    // Run flutterfire configure interactively
-    final configResult = await Process.start(
-      'flutterfire',
-      ['configure', '--project=$projectName'],
-      workingDirectory: projectName,
-      mode: ProcessStartMode.inheritStdio,
+    // Ask for confirmation before running
+    final confirm = await logger.prompt(
+      'Continue with Firebase configuration? (y/N)',
+      defaultValue: 'n',
     );
 
-    final exitCode = await configResult.exitCode;
+    if (confirm.toLowerCase() != 'y') {
+      logger.info('Skipping Firebase configuration.');
+      logger.info('You can configure later with:');
+      logger.info('  cd $projectName && flutterfire configure');
+      return;
+    }
 
-    if (exitCode == 0) {
-      logger.success('✓ Firebase configured successfully!');
-    } else {
-      logger.warn('Firebase configuration incomplete.');
+    try {
+      // Run flutterfire configure interactively
+      logger.info('Running: flutterfire configure --project=$projectName');
+
+      final configProcess = Process.start(
+        'flutterfire',
+        ['configure', '--project=$projectName'],
+        workingDirectory: projectName,
+        mode: ProcessStartMode.inheritStdio,
+      );
+
+      final process = await configProcess;
+      final exitCode = await process.exitCode;
+
+      if (exitCode == 0) {
+        logger.success('✓ Firebase configured successfully!');
+
+        // Show next steps
+        logger.info('');
+        logger.info('📝 Next steps:');
+        logger.info('  1. Add Firebase initialization code to your app');
+        logger.info('  2. Implement Firebase services (Auth, Firestore, etc.)');
+        logger.info('  3. Run: flutter pub get');
+        logger.info('');
+      } else {
+        logger.warn('Firebase configuration exited with code: $exitCode');
+        logger.info('You can try again later with:');
+        logger.info('  cd $projectName && flutterfire configure');
+      }
+    } catch (e) {
+      logger.warn('Error running flutterfire configure: $e');
       logger.info('');
-      logger.info('To configure manually:');
-      logger.info('  cd $projectName');
-      logger.info('  flutterfire configure');
+      logger.info('You can configure Firebase manually:');
+      logger.info(
+          '  1. Create a Firebase project at: https://console.firebase.google.com/');
+      logger.info('  2. Run: cd $projectName && flutterfire configure');
+      logger.info('');
+    }
+  }
+
+  // Helper method to check if a command is available
+  Future<bool> _isCommandAvailable(String command) async {
+    try {
+      if (Platform.isWindows) {
+        final result = await Process.run('where', [command], runInShell: true);
+        return result.exitCode == 0;
+      } else {
+        final result = await Process.run('which', [command], runInShell: true);
+        return result.exitCode == 0;
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Helper method to check if user is logged into Firebase
+  Future<bool> _isFirebaseLoggedIn() async {
+    try {
+      final result = await Process.run(
+        'firebase',
+        ['projects:list'],
+        runInShell: true,
+      );
+      return result.exitCode == 0;
+    } catch (e) {
+      return false;
     }
   }
 
@@ -1001,6 +1114,7 @@ void main() {
       'flutter',
       ['gen-l10n'],
       workingDirectory: projectName,
+      runInShell: true,
     );
 
     if (genL10nResult.exitCode == 0) {

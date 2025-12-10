@@ -907,12 +907,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 64),
                   SocialAuthButton(
                     provider: SocialAuthProvider.google,
-                    onPressed: _isLoading ? null : () => _handleSocialSignIn(SocialAuthProvider.google),
+                    onPressed: _isLoading ? () {} : () => _handleSocialSignIn(SocialAuthProvider.google),
+                    isLoading: _isLoading,
                   ),
                   const SizedBox(height: 16),
                   SocialAuthButton(
                     provider: SocialAuthProvider.apple,
-                    onPressed: _isLoading ? null : () => _handleSocialSignIn(SocialAuthProvider.apple),
+                    onPressed: _isLoading ? () {} : () => _handleSocialSignIn(SocialAuthProvider.apple),
+                    isLoading: _isLoading,
                   ),
                   if (_isLoading) ...[
                     const SizedBox(height: 24),
@@ -936,7 +938,6 @@ class _LoginScreenState extends State<LoginScreen> {
 ''';
   }
 }
-
 // UNIFIED AUTH (ALL METHODS)
 class UnifiedAuthTemplates {
   static String generateUnifiedLogin(String projectName) {
