@@ -116,6 +116,13 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   build_runner: ^2.4.13
   provider: ^6.1.5+1
+  image_picker: ^1.0.7
+  permission_handler: ^11.3.1
+  speech_to_text: ^6.6.0
+  flutter_tts: ^4.0.2
+  record: ^5.1.0
+  path_provider: ^2.1.4
+  url_launcher: ^6.3.0
 
 flutter:
   uses-material-design: true

@@ -16,7 +16,7 @@ class AppRouterTemplate {
     return '''
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:test/features/app/screens/splash_screen.dart';
+import 'package:$projectName/features/app/screens/splash_screen.dart';
 
 // Import generated screens
 import '../../features/auth/screens/login_screen.dart';

@@ -63,152 +63,57 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 24),
                     Text('Welcome Back', style: theme.textTheme.displaySmall, textAlign: TextAlign.center),
                     const SizedBox(height: 8),
-                  Text('Choose your login method', style: theme.textTheme.bodyMedium, textAlign: TextAlign.center),
-                  const SizedBox(height: 32),
-                  TabBar(
-                    controller: _tabController,
-                    tabs: const [
-                      Tab(icon: Icon(Icons.email), text: 'Email'),
-                      Tab(icon: Icon(Icons.person), text: 'Username'),
-                      Tab(icon: Icon(Icons.phone), text: 'Phone'),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    height: 250,
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        _buildEmailForm(),
-                        _buildUsernameForm(),
-                        _buildPhoneForm(),
-                      ],
+                    Text('Sign in with your email', style: theme.textTheme.bodyMedium, textAlign: TextAlign.center),
+                    const SizedBox(height: 48),
+                    AppTextField(
+                      controller: _emailController,
+                      label: 'Email',
+                      hint: 'Enter your email',
+                      prefixIcon: Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return 'Please enter your email';
+                        if (!value.contains('@')) return 'Please enter a valid email';
+                        return null;
+                      },
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  PrimaryButton(
-                    text: _tabController.index == 2 ? 'Send OTP' : 'Login',
-                    isFullWidth: true,
-                    isLoading: _isLoading,
-                    onPressed: _handleLogin,
-                  ),
-                  const SizedBox(height: 16),
-                  SecondaryButton(
-                    text: 'Create Account',
-                    isFullWidth: true,
-                    onPressed: () => context.push('/signup'),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      const Expanded(child: Divider()),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text('OR', style: theme.textTheme.bodySmall),
+                    const SizedBox(height: 16),
+                    PasswordField(
+                      controller: _passwordController,
+                      label: 'Password',
+                      hint: 'Enter your password',
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return 'Please enter your password';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {},
+                        child: const Text('Forgot Password?'),
                       ),
-                      const Expanded(child: Divider()),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  SocialAuthButton(
-                    provider: SocialAuthProvider.google,
-                    onPressed: () => _handleSocialLogin(SocialAuthProvider.google),
-                  ),
-                  const SizedBox(height: 12),
-                  SocialAuthButton(
-                    provider: SocialAuthProvider.apple,
-                    onPressed: () => _handleSocialLogin(SocialAuthProvider.apple),
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 24),
+                    PrimaryButton(
+                      text: 'Login',
+                      isFullWidth: true,
+                      isLoading: _isLoading,
+                      onPressed: _handleLogin,
+                    ),
+                    const SizedBox(height: 16),
+                    SecondaryButton(
+                      text: 'Create Account',
+                      isFullWidth: true,
+                      onPressed: () => context.push('/signup'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildEmailForm() {
-    return Form(
-      key: _emailFormKey,
-      child: Column(
-        children: [
-          AppTextField(
-            controller: _emailController,
-            label: 'Email',
-            prefixIcon: Icons.email_outlined,
-            keyboardType: TextInputType.emailAddress,
-            validator: (value) {
-              if (value == null || value.isEmpty) return 'Please enter your email';
-              if (!value.contains('@')) return 'Please enter a valid email';
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-          PasswordField(
-            controller: _passwordController,
-            label: 'Password',
-            validator: (value) {
-              if (value == null || value.isEmpty) return 'Please enter your password';
-              return null;
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildUsernameForm() {
-    return Form(
-      key: _usernameFormKey,
-      child: Column(
-        children: [
-          AppTextField(
-            controller: _usernameController,
-            label: 'Username',
-            prefixIcon: Icons.person_outline,
-            validator: (value) {
-              if (value == null || value.isEmpty) return 'Please enter your username';
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-          PasswordField(
-            controller: _passwordController,
-            label: 'Password',
-            validator: (value) {
-              if (value == null || value.isEmpty) return 'Please enter your password';
-              return null;
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPhoneForm() {
-    return Form(
-      key: _phoneFormKey,
-      child: Column(
-        children: [
-          AppTextField(
-            controller: _phoneController,
-            label: 'Phone Number',
-            hint: '+1 (555) 123-4567',
-            prefixIcon: Icons.phone,
-            keyboardType: TextInputType.phone,
-            validator: (value) {
-              if (value == null || value.isEmpty) return 'Please enter your phone number';
-              if (value.length < 10) return 'Please enter a valid phone number';
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'We\\'ll send you a verification code',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ],
       ),
     );
   }
@@ -1031,6 +936,7 @@ class _LoginScreenState extends State<LoginScreen> {
 ''';
   }
 }
+
 // UNIFIED AUTH (ALL METHODS)
 class UnifiedAuthTemplates {
   static String generateUnifiedLogin(String projectName) {

@@ -11,6 +11,8 @@ import 'package:superapp_cli/templates/docker_templates.dart'
     show DockerTemplates;
 import 'package:superapp_cli/templates/firebase_operations_template.dart';
 import 'package:superapp_cli/templates/main_template.dart';
+import 'package:superapp_cli/templates/modules_template.dart'
+    show ModulesTemplate;
 import 'package:superapp_cli/templates/pubspec_template.dart';
 import 'package:superapp_cli/templates/theme_template.dart';
 import 'package:superapp_cli/templates/screen_templates.dart';
@@ -71,7 +73,8 @@ class ProjectGenerator {
     if (includeFirebase && firebaseModules.isNotEmpty) {
       await _generateFirebaseOperations();
     }
-
+    await _generateUtilityModules();
+    await _configureNative();
     // Step 8: Generate screens
     await _generateScreens();
 
@@ -104,58 +107,218 @@ class ProjectGenerator {
 
     logger.success('✨ Project generated successfully with $themeColor theme!');
   }
+
 // Add this method to your ProjectGenerator class
-
-Future<void> _generateEnhancedReusableWidgets() async {
-  logger.info('🎨 Generating enhanced reusable widgets...');
-  
-  final widgetsBasePath = path.join(projectName, 'lib', 'shared', 'widgets');
-
-  // Define widget structure
-  final widgetFiles = {
-    // Buttons
-    'buttons/primary_button.dart': EnhancedWidgetsTemplate.generatePrimaryButton(),
-    'buttons/secondary_button.dart': EnhancedWidgetsTemplate.generateSecondaryButton(),
-    'buttons/social_auth_button.dart': EnhancedWidgetsTemplate.generateSocialAuthButton(),
-    
-    // Inputs
-    'inputs/app_text_field.dart': EnhancedWidgetsTemplate.generateAppTextField(),
-    'inputs/password_field.dart': EnhancedWidgetsTemplate.generatePasswordField(),
-    'inputs/otp_input.dart': EnhancedWidgetsTemplate.generateOTPInput(),
-    
-    // Cards
-    'cards/info_card.dart': EnhancedWidgetsPart2.generateInfoCard(),
-    'cards/profile_card.dart': EnhancedWidgetsPart2.generateProfileCard(),
-    
-    // Navigation
-    'navigation/custom_app_bar.dart': EnhancedWidgetsPart2.generateCustomAppBar(),
-    'navigation/bottom_nav_bar.dart': EnhancedWidgetsPart2.generateBottomNavBar(),
-    
-    // States
-    'states/app_loader.dart': EnhancedWidgetsPart2.generateAppLoader(),
-    'states/empty_state.dart': EnhancedWidgetsPart2.generateEmptyState(),
-    'states/error_state.dart': EnhancedWidgetsPart2.generateErrorState(),
-    
-    // Dialogs
-    'dialogs/confirm_dialog.dart': EnhancedWidgetsPart2.generateConfirmDialog(),
-  };
-
-  // Create directories and generate files
-  for (final entry in widgetFiles.entries) {
-    final filePath = path.join(widgetsBasePath, entry.key);
-    await Directory(path.dirname(filePath)).create(recursive: true);
-    await FileUtils.writeFile(filePath, entry.value);
-    logger.detail('✓ Generated ${entry.key}');
+  Future<void> _configureNative() async {
+    await _configureAndroidManifest();
+    await _configureIosInfoPlist();
   }
 
-  // Generate barrel file
-  await _generateWidgetsBarrelFile(widgetsBasePath);
-  
-  logger.success('✨ Enhanced widgets generated successfully!');
-}
+  Future<void> _configureAndroidManifest() async {
+    final manifestPath = path.join(
+      projectName,
+      'android',
+      'app',
+      'src',
+      'main',
+      'AndroidManifest.xml',
+    );
 
-Future<void> _generateWidgetsBarrelFile(String widgetsDir) async {
-  final barrelContent = '''
+    final manifestFile = File(manifestPath);
+    if (!await manifestFile.exists()) {
+      logger.warn('AndroidManifest.xml not found at $manifestPath');
+      return;
+    }
+
+    var content = await manifestFile.readAsString();
+
+    // Permissions you want to ensure are present
+    const permissionsBlock = '''
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+''';
+
+    // Don’t add twice – check a single known permission
+    if (!content.contains('android.permission.CAMERA')) {
+      // Insert just before <application ...>
+      if (content.contains('<application')) {
+        content = content.replaceFirst(
+          '<application',
+          '$permissionsBlock\n    <application',
+        );
+      } else {
+        // fallback: insert before closing </manifest>
+        content = content.replaceFirst(
+          '</manifest>',
+          '$permissionsBlock\n</manifest>',
+        );
+      }
+
+      await manifestFile.writeAsString(content);
+      logger.detail('✓ Updated AndroidManifest.xml with extra permissions');
+    } else {
+      logger.detail(
+          'AndroidManifest.xml already contains custom permissions, skipping.');
+    }
+  }
+
+  Future<void> _configureIosInfoPlist() async {
+    final infoPlistPath = path.join(
+      projectName,
+      'ios',
+      'Runner',
+      'Info.plist',
+    );
+
+    final plistFile = File(infoPlistPath);
+    if (!await plistFile.exists()) {
+      logger.warn('Info.plist not found at $infoPlistPath');
+      return;
+    }
+
+    var content = await plistFile.readAsString();
+
+    // Keys + descriptions you want
+    const plistEntries = '''
+    <key>NSCameraUsageDescription</key>
+    <string>This app requires access to the camera to capture photos and videos.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>This app requires access to the microphone to record audio.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>This app requires access to your photo library to select images.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>This app saves photos to your library.</string>
+    <key>NSContactsUsageDescription</key>
+    <string>This app may access your contacts to improve the experience.</string>
+''';
+
+    // Avoid duplicating – check one of the keys
+    if (!content.contains('NSCameraUsageDescription')) {
+      // Insert before </dict>
+      content = content.replaceFirst(
+        '</dict>',
+        '$plistEntries\n</dict>',
+      );
+
+      await plistFile.writeAsString(content);
+      logger.detail('✓ Updated iOS Info.plist with usage descriptions');
+    } else {
+      logger
+          .detail('Info.plist already contains usage descriptions, skipping.');
+    }
+  }
+
+  Future<void> _generateUtilityModules() async {
+    logger.info('⚙️ Generating utility modules (camera, voice, call)...');
+
+    final modulesRoot = path.join(projectName, 'lib', 'core', 'modules');
+    final cameraDir = path.join(modulesRoot, 'camera');
+    final voiceDir = path.join(modulesRoot, 'voice');
+    final callDir = path.join(modulesRoot, 'call');
+
+    // Ensure directories exist
+    await Directory(cameraDir).create(recursive: true);
+    await Directory(voiceDir).create(recursive: true);
+    await Directory(callDir).create(recursive: true);
+
+    // Camera
+    await FileUtils.writeFile(
+      path.join(cameraDir, 'camera_service.dart'),
+      ModulesTemplate.cameraService(),
+    );
+
+    // Speech-to-text
+    await FileUtils.writeFile(
+      path.join(voiceDir, 'speech_service.dart'),
+      ModulesTemplate.speechService(),
+    );
+
+    // Text-to-speech
+    await FileUtils.writeFile(
+      path.join(voiceDir, 'tts_service.dart'),
+      ModulesTemplate.ttsService(),
+    );
+
+    // Audio recorder
+    await FileUtils.writeFile(
+      path.join(voiceDir, 'audio_recorder_service.dart'),
+      ModulesTemplate.audioRecorderService(),
+    );
+
+    // Call service
+    await FileUtils.writeFile(
+      path.join(callDir, 'call_service.dart'),
+      ModulesTemplate.callService(),
+    );
+
+    logger.detail('✓ Utility modules generated');
+  }
+
+  Future<void> _generateEnhancedReusableWidgets() async {
+    logger.info('🎨 Generating enhanced reusable widgets...');
+
+    final widgetsBasePath = path.join(projectName, 'lib', 'shared', 'widgets');
+
+    // Define widget structure
+    final widgetFiles = {
+      // Buttons
+      'buttons/primary_button.dart':
+          EnhancedWidgetsTemplate.generatePrimaryButton(),
+      'buttons/secondary_button.dart':
+          EnhancedWidgetsTemplate.generateSecondaryButton(),
+      'buttons/social_auth_button.dart':
+          EnhancedWidgetsTemplate.generateSocialAuthButton(),
+
+      // Inputs
+      'inputs/app_text_field.dart':
+          EnhancedWidgetsTemplate.generateAppTextField(),
+      'inputs/password_field.dart':
+          EnhancedWidgetsTemplate.generatePasswordField(),
+      'inputs/otp_input.dart': EnhancedWidgetsTemplate.generateOTPInput(),
+
+      // Cards
+      'cards/info_card.dart': EnhancedWidgetsPart2.generateInfoCard(),
+      'cards/profile_card.dart': EnhancedWidgetsPart2.generateProfileCard(),
+
+      // Navigation
+      'navigation/custom_app_bar.dart':
+          EnhancedWidgetsPart2.generateCustomAppBar(),
+      'navigation/bottom_nav_bar.dart':
+          EnhancedWidgetsPart2.generateBottomNavBar(),
+
+      // States
+      'states/app_loader.dart': EnhancedWidgetsPart2.generateAppLoader(),
+      'states/empty_state.dart': EnhancedWidgetsPart2.generateEmptyState(),
+      'states/error_state.dart': EnhancedWidgetsPart2.generateErrorState(),
+
+      // Dialogs
+      'dialogs/confirm_dialog.dart':
+          EnhancedWidgetsPart2.generateConfirmDialog(),
+    };
+
+    // Create directories and generate files
+    for (final entry in widgetFiles.entries) {
+      final filePath = path.join(widgetsBasePath, entry.key);
+      await Directory(path.dirname(filePath)).create(recursive: true);
+      await FileUtils.writeFile(filePath, entry.value);
+      logger.detail('✓ Generated ${entry.key}');
+    }
+
+    // Generate barrel file
+    await _generateWidgetsBarrelFile(widgetsBasePath);
+
+    logger.success('✨ Enhanced widgets generated successfully!');
+  }
+
+  Future<void> _generateWidgetsBarrelFile(String widgetsDir) async {
+    final barrelContent = '''
 // Barrel file for shared widgets
 // Import this file to access all reusable widgets
 
@@ -185,11 +348,11 @@ export 'states/error_state.dart';
 // Dialogs
 export 'dialogs/confirm_dialog.dart';
 ''';
-  
-  final barrelPath = path.join(widgetsDir, 'widgets.dart');
-  await FileUtils.writeFile(barrelPath, barrelContent);
-  logger.detail('✓ Generated widgets.dart (barrel file)');
-}
+
+    final barrelPath = path.join(widgetsDir, 'widgets.dart');
+    await FileUtils.writeFile(barrelPath, barrelContent);
+    logger.detail('✓ Generated widgets.dart (barrel file)');
+  }
 
 // UPDATE the generate() method in ProjectGenerator:
 // Replace this line:
@@ -329,6 +492,7 @@ export 'dialogs/confirm_dialog.dart';
     logger.success(
         '✨ Chatbot generated successfully with BLoC state management!');
   }
+
   Future<void> _generateScreens() async {
     // Generate Splash Screen
     final splashScreenPath = path.join(
