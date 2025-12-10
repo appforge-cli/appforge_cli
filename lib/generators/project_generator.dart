@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as path;
+import 'package:superapp_cli/templates/EnhancedWidgetsPart2.dart';
+import 'package:superapp_cli/templates/EnhancedWidgetsTemplate.dart';
 import 'package:superapp_cli/templates/app_localization_template.dart';
 import 'package:superapp_cli/templates/app_router_template.dart';
 import 'package:superapp_cli/templates/chatbot_templates.dart'
@@ -12,8 +14,6 @@ import 'package:superapp_cli/templates/main_template.dart';
 import 'package:superapp_cli/templates/pubspec_template.dart';
 import 'package:superapp_cli/templates/theme_template.dart';
 import 'package:superapp_cli/templates/screen_templates.dart';
-import 'package:superapp_cli/templates/widgets_template.dart'
-    show ReusableWidgetsTemplate;
 import 'package:superapp_cli/utils/file_utils.dart';
 
 class ProjectGenerator {
@@ -60,7 +60,7 @@ class ProjectGenerator {
     await _generateTheme();
 
     // Step 5: Generate reusable widgets
-    await _generateReusableWidgets();
+    await _generateEnhancedReusableWidgets();
 
     // Step 6: Generate chatbot if enabled
     if (includeChatbot) {
@@ -104,7 +104,98 @@ class ProjectGenerator {
 
     logger.success('✨ Project generated successfully with $themeColor theme!');
   }
+// Add this method to your ProjectGenerator class
 
+Future<void> _generateEnhancedReusableWidgets() async {
+  logger.info('🎨 Generating enhanced reusable widgets...');
+  
+  final widgetsBasePath = path.join(projectName, 'lib', 'shared', 'widgets');
+
+  // Define widget structure
+  final widgetFiles = {
+    // Buttons
+    'buttons/primary_button.dart': EnhancedWidgetsTemplate.generatePrimaryButton(),
+    'buttons/secondary_button.dart': EnhancedWidgetsTemplate.generateSecondaryButton(),
+    'buttons/social_auth_button.dart': EnhancedWidgetsTemplate.generateSocialAuthButton(),
+    
+    // Inputs
+    'inputs/app_text_field.dart': EnhancedWidgetsTemplate.generateAppTextField(),
+    'inputs/password_field.dart': EnhancedWidgetsTemplate.generatePasswordField(),
+    'inputs/otp_input.dart': EnhancedWidgetsTemplate.generateOTPInput(),
+    
+    // Cards
+    'cards/info_card.dart': EnhancedWidgetsPart2.generateInfoCard(),
+    'cards/profile_card.dart': EnhancedWidgetsPart2.generateProfileCard(),
+    
+    // Navigation
+    'navigation/custom_app_bar.dart': EnhancedWidgetsPart2.generateCustomAppBar(),
+    'navigation/bottom_nav_bar.dart': EnhancedWidgetsPart2.generateBottomNavBar(),
+    
+    // States
+    'states/app_loader.dart': EnhancedWidgetsPart2.generateAppLoader(),
+    'states/empty_state.dart': EnhancedWidgetsPart2.generateEmptyState(),
+    'states/error_state.dart': EnhancedWidgetsPart2.generateErrorState(),
+    
+    // Dialogs
+    'dialogs/confirm_dialog.dart': EnhancedWidgetsPart2.generateConfirmDialog(),
+  };
+
+  // Create directories and generate files
+  for (final entry in widgetFiles.entries) {
+    final filePath = path.join(widgetsBasePath, entry.key);
+    await Directory(path.dirname(filePath)).create(recursive: true);
+    await FileUtils.writeFile(filePath, entry.value);
+    logger.detail('✓ Generated ${entry.key}');
+  }
+
+  // Generate barrel file
+  await _generateWidgetsBarrelFile(widgetsBasePath);
+  
+  logger.success('✨ Enhanced widgets generated successfully!');
+}
+
+Future<void> _generateWidgetsBarrelFile(String widgetsDir) async {
+  final barrelContent = '''
+// Barrel file for shared widgets
+// Import this file to access all reusable widgets
+
+// Buttons
+export 'buttons/primary_button.dart';
+export 'buttons/secondary_button.dart';
+export 'buttons/social_auth_button.dart';
+
+// Inputs
+export 'inputs/app_text_field.dart';
+export 'inputs/password_field.dart';
+export 'inputs/otp_input.dart';
+
+// Cards
+export 'cards/info_card.dart';
+export 'cards/profile_card.dart';
+
+// Navigation
+export 'navigation/custom_app_bar.dart';
+export 'navigation/bottom_nav_bar.dart';
+
+// States
+export 'states/app_loader.dart';
+export 'states/empty_state.dart';
+export 'states/error_state.dart';
+
+// Dialogs
+export 'dialogs/confirm_dialog.dart';
+''';
+  
+  final barrelPath = path.join(widgetsDir, 'widgets.dart');
+  await FileUtils.writeFile(barrelPath, barrelContent);
+  logger.detail('✓ Generated widgets.dart (barrel file)');
+}
+
+// UPDATE the generate() method in ProjectGenerator:
+// Replace this line:
+//   await _generateReusableWidgets();
+// With:
+//   await _generateEnhancedReusableWidgets();
   Future<void> _generateTheme() async {
     final themePath =
         path.join(projectName, 'lib', 'app', 'theme', 'app_theme.dart');
@@ -126,38 +217,6 @@ class ProjectGenerator {
     await FileUtils.writeFile(filePath, content);
     logger.detail(
         'Generated Firebase operations file with modules: ${firebaseModules.join(', ')}');
-  }
-
-  Future<void> _generateReusableWidgets() async {
-    final widgetsDir = path.join(projectName, 'lib', 'shared', 'widgets');
-    await Directory(widgetsDir).create(recursive: true);
-
-    final widgets = {
-      'custom_app_bar.dart': ReusableWidgetsTemplate.generateCustomAppBar(),
-      'custom_bottom_nav_bar.dart':
-          ReusableWidgetsTemplate.generateBottomNavBar(),
-      'loading_indicators.dart':
-          ReusableWidgetsTemplate.generateLoadingIndicators(),
-      'custom_cards.dart': ReusableWidgetsTemplate.generateCustomCards(),
-      'custom_buttons.dart': ReusableWidgetsTemplate.generateCustomButtons(),
-      'empty_states.dart': ReusableWidgetsTemplate.generateEmptyStates(),
-      'custom_input_fields.dart':
-          ReusableWidgetsTemplate.generateCustomInputFields(),
-      'dialog_helper.dart': ReusableWidgetsTemplate.generateDialogHelpers(),
-      'snackbar_helper.dart': ReusableWidgetsTemplate.generateSnackbarHelpers(),
-      'custom_list_tiles.dart': ReusableWidgetsTemplate.generateListTiles(),
-      'custom_avatar.dart': ReusableWidgetsTemplate.generateAvatarWidget(),
-      'custom_badge.dart': ReusableWidgetsTemplate.generateBadgeWidget(),
-    };
-
-    for (final entry in widgets.entries) {
-      final widgetPath = path.join(widgetsDir, entry.key);
-      await FileUtils.writeFile(widgetPath, entry.value);
-      logger.detail('Generated ${entry.key}');
-    }
-
-    // Generate barrel file for easy imports
-    await _generateWidgetsBarrelFile(widgetsDir, widgets.keys.toList());
   }
 
   Future<void> _generateChatbot() async {
@@ -270,21 +329,6 @@ class ProjectGenerator {
     logger.success(
         '✨ Chatbot generated successfully with BLoC state management!');
   }
-
-  Future<void> _generateWidgetsBarrelFile(
-      String widgetsDir, List<String> fileNames) async {
-    final exports = fileNames.map((name) => "export '$name';").join('\n');
-    final barrelContent = '''
-// Barrel file for shared widgets
-// Import this file to access all reusable widgets
-$exports
-''';
-
-    final barrelPath = path.join(widgetsDir, 'widgets.dart');
-    await FileUtils.writeFile(barrelPath, barrelContent);
-    logger.detail('Generated widgets barrel file');
-  }
-
   Future<void> _generateScreens() async {
     // Generate Splash Screen
     final splashScreenPath = path.join(
