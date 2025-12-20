@@ -17,6 +17,7 @@ class AppRouterTemplate {
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:$projectName/features/app/screens/splash_screen.dart';
+import 'package:$projectName/features/app/screens/onboarding_screen.dart';
 
 // Import generated screens
 import '../../features/auth/screens/login_screen.dart';
@@ -33,6 +34,13 @@ final GoRouter appRouter = GoRouter(
       path: '/splash',
       name: 'splash',
       builder: (context, state) => const SplashScreen(),
+    ),
+    
+    // Onboarding Screen
+    GoRoute(
+      path: '/onboarding',
+      name: 'onboarding',
+      builder: (context, state) => const OnboardingScreen(),
     ),
     
     // Main App Routes

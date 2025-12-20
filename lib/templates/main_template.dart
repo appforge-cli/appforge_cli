@@ -15,6 +15,11 @@ import 'package:firebase_core/firebase_core.dart';
 '''
         : '';
 
+    // --- Feature Service imports ---
+    final featureServiceImports = '''
+import 'package:$projectName/core/services/feature_service.dart';
+''';
+
     // --- Localization imports block (your actual setup) ---
     final localizationImports = includeLocalization
         ? '''
@@ -32,6 +37,11 @@ import 'package:$projectName/core/providers/locale_provider.dart';
   // );
 '''
         : '';
+
+    // --- Feature Service init code in main() ---
+    final featureServiceInit = '''
+  await FeatureService.initialize();
+''';
 
     // --- Localization config inside MaterialApp.router ---
     final localizationSupport = includeLocalization
@@ -57,6 +67,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 $firebaseInit
+$featureServiceInit
   runApp(
     ProviderScope(
       child: provider_pkg.ChangeNotifierProvider(
@@ -95,6 +106,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 $firebaseInit
+$featureServiceInit
   runApp(const ProviderScope(child: MyApp()));
 }
 ''';
@@ -126,6 +138,7 @@ import 'package:provider/provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 $firebaseInit
+$featureServiceInit
   runApp(
     ChangeNotifierProvider(
       create: (_) => LocaleProvider(),
@@ -161,6 +174,7 @@ import 'package:provider/provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 $firebaseInit
+$featureServiceInit
   runApp(const MyApp());
 }
 ''';
@@ -193,6 +207,7 @@ import 'package:provider/provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 $firebaseInit
+$featureServiceInit
   runApp(
     ChangeNotifierProvider(
       create: (_) => LocaleProvider(),
@@ -228,6 +243,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 $firebaseInit
+$featureServiceInit
   runApp(const MyApp());
 }
 ''';
@@ -259,6 +275,7 @@ import 'package:provider/provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 $firebaseInit
+$featureServiceInit
   runApp(
     ChangeNotifierProvider(
       create: (_) => LocaleProvider(),
@@ -292,6 +309,7 @@ $localizationSupport
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 $firebaseInit
+$featureServiceInit
   runApp(const MyApp());
 }
 ''';
@@ -319,7 +337,7 @@ class MyApp extends StatelessWidget {
 import 'package:flutter/material.dart';
 import 'package:$projectName/app/theme/app_theme.dart';
 import 'package:$projectName/app/router/app_router.dart';
-$firebaseImports$localizationImports
+$firebaseImports$localizationImports$featureServiceImports
 $stateManagementSetup
 
 $appWidget

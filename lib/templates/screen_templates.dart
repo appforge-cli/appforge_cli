@@ -6,6 +6,7 @@ class ScreenTemplates {
     return '''
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:$projectName/core/services/feature_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -36,14 +37,21 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     );
 
     _controller.forward();
-    _navigateToHome();
+    _navigateToNextScreen();
   }
 
-  Future<void> _navigateToHome() async {
+  Future<void> _navigateToNextScreen() async {
     await Future.delayed(const Duration(seconds: 3));
     
     if (mounted) {
-      context.go('/');
+      // Check if user has completed onboarding
+      final onboardingCompleted = await FeatureService.isOnboardingCompleted();
+
+      if (onboardingCompleted) {
+        context.go('/');
+      } else {
+        context.go('/onboarding');
+      }
     }
   }
 
@@ -148,9 +156,47 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   /// Generates a responsive home screen with enhanced widgets
   static String generateHomeScreen(String projectName) {
     return '''
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter/services.dart';
 import '../../../shared/widgets/widgets.dart';
+import '../../../core/services/feature_service.dart';
+import '../../../core/modules/camera/camera_service.dart';
+import '../../../core/modules/call/call_service.dart';
+import '../../../core/modules/contacts/phone_contacts_service.dart';
+import '../../../core/modules/contacts/contact.dart';
+import 'package:provider/provider.dart' as provider_pkg;
+import '../../../core/providers/locale_provider.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../chatbot/screens/chatbot_screen.dart';
+
+
+// TODO: Add native language names to each language file
+String _nativeLanguageName(String code) {
+  const names = {
+    'ar': 'العربية',
+    'bn': 'বাংলা',
+    'en': 'English',
+    'hi': 'हिंदी',
+    'es': 'Español',
+    'fr': 'Français',
+    'de': 'Deutsch',
+    'zh': '中文',
+    'ja': '日本語',
+    'ta': 'தமிழ்',
+    'te': 'తెలుగు',
+    'mr': 'मराठी',
+    'gu': 'ગુજરાતી',
+    'kn': 'ಕನ್ನಡ',
+    'ml': 'മലയാളം',
+    'pt': 'Português',
+    'ru': 'Русский',
+    'it': 'Italiano',
+    'pl': 'Polski',
+  };
+  return names[code] ?? code;
+}
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -160,29 +206,49 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
+  final List<File> _capturedImages = [];
+  final List<Contact> _savedContacts = [];
+  Contact? _selectedContact;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
+    // final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Home',
+        title: 'Demo Page',
         actions: [
-          IconButton(
-            icon: Icon(
-              isDark ? Icons.light_mode : Icons.dark_mode,
-              size: 24,
+          PopupMenuButton<Locale>(
+            tooltip: 'Select Language',
+            icon: Row(
+              children: [
+                const Icon(Icons.language),
+                const SizedBox(width: 6),
+                Text(_nativeLanguageName(currentLocale.languageCode)),
+              ],
             ),
-            onPressed: () {
-              // TODO: Implement theme toggle
+            itemBuilder: (context) {
+              return AppLocalizations.supportedLocales.map((loc) {
+                final name = _nativeLanguageName(loc.languageCode);
+                return PopupMenuItem<Locale>(
+                  value: loc,
+                  child: Row(
+                    children: [
+                      if (loc.languageCode == currentLocale.languageCode)
+                        const Icon(Icons.check, size: 18)
+                      else
+                        const SizedBox(width: 18),
+                      const SizedBox(width: 8),
+                      Text(name),
+                    ],
+                  ),
+                );
+              }).toList();
             },
-          ),
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined, size: 24),
-            onPressed: () {},
+            onSelected: (loc) {
+              localeProvider.setLocale(loc);
+            },
           ),
           const SizedBox(width: 4),
         ],
@@ -190,9 +256,9 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final isTablet = constraints.maxWidth > 600;
-            final crossAxisCount = isTablet ? 3 : 2;
-            
+            // final isTablet = constraints.maxWidth > 600;
+            // final crossAxisCount = isTablet ? 3 : 2;
+
             return RefreshIndicator(
               onRefresh: () async {
                 await Future.delayed(const Duration(seconds: 1));
@@ -207,83 +273,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Welcome Back! 👋',
+                            'Welcome Developer!',
                             style: theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Here\\'s what\\'s happening today',
+                            'Start coding your app by customizing this home screen.',
                             style: theme.textTheme.bodyLarge?.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(0.6),
+                              color:
+                                  theme.colorScheme.onSurface.withOpacity(0.6),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Stats Cards
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    sliver: SliverToBoxAdapter(
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: InfoCard(
-                                  title: 'Total Items',
-                                  value: '124',
-                                  icon: Icons.inventory_2_outlined,
-                                  color: theme.colorScheme.primary,
-                                  showTrend: true,
-                                  trendValue: 12.5,
-                                  onTap: () {},
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: InfoCard(
-                                  title: 'Completion',
-                                  value: '89%',
-                                  icon: Icons.trending_up_rounded,
-                                  color: theme.colorScheme.secondary,
-                                  showTrend: true,
-                                  trendValue: 5.3,
-                                  onTap: () {},
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: InfoCard(
-                                  title: 'Active Users',
-                                  value: '2.4K',
-                                  icon: Icons.people_outline_rounded,
-                                  color: Colors.blue,
-                                  showTrend: true,
-                                  trendValue: -2.1,
-                                  onTap: () {},
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: InfoCard(
-                                  title: 'Revenue',
-                                  value: '\\\$45K',
-                                  icon: Icons.attach_money_rounded,
-                                  color: Colors.green,
-                                  showTrend: true,
-                                  trendValue: 8.7,
-                                  onTap: () {},
-                                ),
-                              ),
-                            ],
                           ),
                         ],
                       ),
@@ -291,78 +292,361 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
 
                   const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                  // Camera Section (conditional based on FeatureService)
+                  if (FeatureService.isCameraEnabled ||
+                      FeatureService.isImagePickerEnabled) ...[
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      sliver: SliverToBoxAdapter(
+                        child: Text(
+                          'Photo Gallery',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      sliver: SliverToBoxAdapter(
+                        child: Row(
+                          children: [
+                            if (FeatureService.isCameraEnabled)
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: _takePhoto,
+                                  icon: const Icon(Icons.camera_alt),
+                                  label: const Text('Take Photo'),
+                                  style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
+                                  ),
+                                ),
+                              ),
+                            if (FeatureService.isCameraEnabled &&
+                                FeatureService.isImagePickerEnabled)
+                              const SizedBox(width: 12),
+                            if (FeatureService.isImagePickerEnabled)
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: _pickFromGallery,
+                                  icon: const Icon(Icons.photo_library),
+                                  label: const Text('Pick Image'),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      sliver: SliverToBoxAdapter(
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed:
+                                _capturedImages.isEmpty ? null : _viewPhotos,
+                            icon: const Icon(Icons.photo_album),
+                            label:
+                                Text('View Photos (\${_capturedImages.length})'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                  ],
 
-                  // Quick Actions Header
+                  // Calling Section (conditional based on FeatureService)
+                  if (FeatureService.isCallEnabled) ...[
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      sliver: SliverToBoxAdapter(
+                        child: Text(
+                          'Calling',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      sliver: SliverToBoxAdapter(
+                        child: Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primary
+                                        .withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Icon(
+                                    Icons.call,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Make a Call',
+                                        style: theme.textTheme.titleMedium
+                                            ?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Quickly dial a phone number',
+                                        style:
+                                            theme.textTheme.bodySmall?.copyWith(
+                                          color: theme.colorScheme.onSurface
+                                              .withOpacity(0.6),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                ElevatedButton.icon(
+                                  onPressed: _startCall,
+                                  icon: const Icon(Icons.call),
+                                  label: const Text('Start Call'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                  ],
+
+                  // Contacts Section (conditional based on FeatureService)
+                  if (FeatureService.isContactsEnabled) ...[
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      sliver: SliverToBoxAdapter(
+                        child: Text(
+                          'Contacts',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      sliver: SliverToBoxAdapter(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: _pickContact,
+                                icon: const Icon(Icons.person_add),
+                                label: const Text('Pick Contact'),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: _savedContacts.isEmpty
+                                    ? null
+                                    : _viewSavedContacts,
+                                icon: const Icon(Icons.contacts),
+                                label: Text('Saved (\${_savedContacts.length})'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (_selectedContact != null) ...[
+                      const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        sliver: SliverToBoxAdapter(
+                          child: Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.person,
+                                        size: 32,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              _selectedContact!.name,
+                                              style: theme.textTheme.titleMedium
+                                                  ?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              _selectedContact!.phoneNumber,
+                                              style: theme.textTheme.bodyMedium,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: ElevatedButton.icon(
+                                          onPressed: _callContact,
+                                          icon: const Icon(Icons.call),
+                                          label: const Text('Call'),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: OutlinedButton.icon(
+                                          onPressed: _copyContactNumber,
+                                          icon: const Icon(Icons.copy),
+                                          label: const Text('Copy'),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: OutlinedButton.icon(
+                                          onPressed: _saveContact,
+                                          icon: const Icon(Icons.bookmark_add),
+                                          label: const Text('Save'),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                  ],
+
+                  // AI Chatbot Section
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     sliver: SliverToBoxAdapter(
                       child: Text(
-                        'Quick Actions',
+                        'AI Assistant',
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                   ),
-
                   const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
-                  // Quick Actions Grid
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    sliver: SliverGrid(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: crossAxisCount,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: 1.1,
+                    sliver: SliverToBoxAdapter(
+                      child: Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 2,
+                        child: InkWell(
+                          onTap: _openChatbot,
+                          borderRadius: BorderRadius.circular(16),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.purple.shade400,
+                                        Colors.blue.shade400,
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    Icons.chat_bubble_outline,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Chat with AI',
+                                        style: theme.textTheme.titleMedium
+                                            ?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Ask questions and get instant answers',
+                                        style:
+                                            theme.textTheme.bodySmall?.copyWith(
+                                          color: theme.colorScheme.onSurface
+                                              .withOpacity(0.6),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 16,
+                                  color: theme.colorScheme.onSurface
+                                      .withOpacity(0.4),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
-                      delegate: SliverChildListDelegate([
-                        _buildActionCard(
-                          context,
-                          'Profile',
-                          Icons.person_outline_rounded,
-                          theme.colorScheme.primary,
-                          () => context.go('/profile'),
-                        ),
-                        _buildActionCard(
-                          context,
-                          'Analytics',
-                          Icons.analytics_outlined,
-                          Colors.blue,
-                          () {},
-                        ),
-                        _buildActionCard(
-                          context,
-                          'Messages',
-                          Icons.message_outlined,
-                          Colors.orange,
-                          () {},
-                        ),
-                        _buildActionCard(
-                          context,
-                          'Settings',
-                          Icons.settings_outlined,
-                          Colors.purple,
-                          () {},
-                        ),
-                        _buildActionCard(
-                          context,
-                          'Reports',
-                          Icons.assessment_outlined,
-                          Colors.green,
-                          () {},
-                        ),
-                        _buildActionCard(
-                          context,
-                          'Help',
-                          Icons.help_outline_rounded,
-                          Colors.red,
-                          () {},
-                        ),
-                      ]),
                     ),
                   ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
                   const SliverToBoxAdapter(child: SizedBox(height: 100)),
                 ],
@@ -371,136 +655,413 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('New Item'),
-        elevation: 4,
-      ),
-      bottomNavigationBar: _buildBottomNav(theme),
     );
   }
 
-  Widget _buildActionCard(
-    BuildContext context,
-    String title,
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    final theme = Theme.of(context);
-    
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: theme.colorScheme.outline.withOpacity(0.1),
+  Future<void> _takePhoto() async {
+    try {
+      final file = await CameraService.pickImageFromCamera();
+      if (file != null) {
+        setState(() {
+          _capturedImages.add(file);
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Photo captured successfully!')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: \$e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _pickFromGallery() async {
+    try {
+      final file = await CameraService.pickImageFromGallery();
+      if (file != null) {
+        setState(() {
+          _capturedImages.add(file);
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Image added from gallery!')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: \$e')),
+        );
+      }
+    }
+  }
+
+  void _viewPhotos() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Photo Gallery (\${_capturedImages.length})',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: GridView.builder(
+                controller: scrollController,
+                padding: const EdgeInsets.all(16),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                ),
+                itemCount: _capturedImages.length,
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTap: () => _showFullImage(_capturedImages[index]),
+                    onLongPress: () => _deleteImage(index),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        _capturedImages[index],
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                color.withOpacity(0.1),
-                color.withOpacity(0.05),
-              ],
+    );
+  }
+
+  void _showFullImage(File imageFile) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            iconTheme: const IconThemeData(color: Colors.white),
+          ),
+          backgroundColor: Colors.black,
+          body: Center(
+            child: InteractiveViewer(
+              child: Image.file(imageFile),
             ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(
-                  icon,
-                  size: 32,
-                  color: color,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
         ),
       ),
     );
   }
 
-  Widget _buildBottomNav(ThemeData theme) {
-    return Container(
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
+  void _deleteImage(int index) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Photo'),
+        content: const Text('Are you sure you want to delete this photo?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _capturedImages.removeAt(index);
+              });
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Photo deleted')),
+              );
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
-      child: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() => _selectedIndex = index);
-          switch (index) {
-            case 0:
-              context.go('/');
-              break;
-            case 1:
-              // Explore route
-              break;
-            case 2:
-              // Notifications route
-              break;
-            case 3:
-              context.go('/profile');
-              break;
-          }
-        },
-        elevation: 0,
-        backgroundColor: theme.scaffoldBackgroundColor,
-        indicatorColor: theme.colorScheme.primary.withOpacity(0.15),
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        height: 70,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home_rounded),
-            label: 'Home',
+    );
+  }
+
+  // Call helper methods
+  Future<void> _startCall() async {
+    try {
+      final number = await _promptPhoneNumber();
+      if (number == null || number.trim().isEmpty) return;
+      await CallService.callNumber(number.trim());
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Call error: \$e')),
+        );
+      }
+    }
+  }
+
+  Future<String?> _promptPhoneNumber() async {
+    final controller = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Enter phone number'),
+          content: TextField(
+            controller: controller,
+            keyboardType: TextInputType.phone,
+            decoration: const InputDecoration(
+              hintText: '+1 555 123 4567',
+              border: OutlineInputBorder(),
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.explore_outlined),
-            selectedIcon: Icon(Icons.explore_rounded),
-            label: 'Explore',
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: const Text('Call'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Contact helper methods
+  Future<void> _pickContact() async {
+    try {
+      final contact = await PhoneContactsService.pickContact();
+      if (contact != null) {
+        setState(() {
+          _selectedContact = contact;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Contact selected: \${contact.name}')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: \$e')),
+        );
+      }
+    }
+  }
+
+  void _callContact() async {
+    if (_selectedContact == null) return;
+    try {
+      await CallService.callNumber(_selectedContact!.phoneNumber);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: \$e')),
+        );
+      }
+    }
+  }
+
+  void _copyContactNumber() {
+    if (_selectedContact == null) return;
+    Clipboard.setData(
+      ClipboardData(text: _selectedContact!.phoneNumber),
+    ).then((_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '\${_selectedContact!.phoneNumber} copied!',
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.notifications_outlined),
-            selectedIcon: Icon(Icons.notifications_rounded),
-            label: 'Alerts',
+        );
+      }
+    });
+  }
+
+  void _saveContact() {
+    if (_selectedContact == null) return;
+
+    final exists = _savedContacts.any(
+      (c) => c.phoneNumber == _selectedContact!.phoneNumber,
+    );
+
+    if (exists) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Contact already saved!')),
+      );
+      return;
+    }
+
+    setState(() {
+      _savedContacts.add(_selectedContact!);
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '\${_selectedContact!.name} saved!',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline_rounded),
-            selectedIcon: Icon(Icons.person_rounded),
-            label: 'Profile',
-          ),
-        ],
+        ),
+      );
+    }
+  }
+
+  void _viewSavedContacts() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Saved Contacts (\${_savedContacts.length})',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: ListView.builder(
+                controller: scrollController,
+                padding: const EdgeInsets.all(16),
+                itemCount: _savedContacts.length,
+                itemBuilder: (context, index) {
+                  final contact = _savedContacts[index];
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.person,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      title: Text(contact.name),
+                      subtitle: Text(contact.phoneNumber),
+                      trailing: PopupMenuButton(
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            child: const Text('Call'),
+                            onTap: () async {
+                              try {
+                                await CallService.callNumber(
+                                  contact.phoneNumber,
+                                );
+                              } catch (e) {
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Error: \$e')),
+                                  );
+                                }
+                              }
+                            },
+                          ),
+                          PopupMenuItem(
+                            child: const Text('Copy'),
+                            onTap: () {
+                              Clipboard.setData(
+                                ClipboardData(text: contact.phoneNumber),
+                              ).then((_) {
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        '\${contact.phoneNumber} copied!',
+                                      ),
+                                    ),
+                                  );
+                                }
+                              });
+                            },
+                          ),
+                          PopupMenuItem(
+                            child: const Text(
+                              'Delete',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                            onTap: () {
+                              setState(() {
+                                _savedContacts.removeAt(index);
+                              });
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('\${contact.name} deleted'),
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+    void _openChatbot() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ChatbotScreen(),
       ),
     );
   }

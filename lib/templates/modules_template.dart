@@ -1,11 +1,12 @@
 class ModulesTemplate {
   // 📷 Camera service
-  static String cameraService() {
+  static String cameraService(String projectName) {
     return '''
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:$projectName/core/services/feature_service.dart';
 
 /// Simple camera/gallery helper.
 ///
@@ -17,6 +18,10 @@ class CameraService {
 
   /// Pick an image using the device camera.
   static Future<File?> pickImageFromCamera() async {
+    if (!FeatureService.isCameraEnabled) {
+      throw Exception('Camera feature is disabled. Enable it in settings.');
+    }
+    
     final XFile? picked = await _picker.pickImage(
       source: ImageSource.camera,
       imageQuality: 80,
@@ -27,6 +32,10 @@ class CameraService {
 
   /// Pick an image from the gallery.
   static Future<File?> pickImageFromGallery() async {
+    if (!FeatureService.isImagePickerEnabled) {
+      throw Exception('Image picker feature is disabled. Enable it in settings.');
+    }
+    
     final XFile? picked = await _picker.pickImage(
       source: ImageSource.gallery,
       imageQuality: 80,
@@ -202,31 +211,107 @@ class AudioRecorderService {
   }
 
   // 📞 Call intent
-  static String callService() {
+  static String callService(String projectName) {
     return '''
 import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:$projectName/core/services/feature_service.dart';
 
 /// Helper to open the phone dialer or start a call.
 ///
 /// Usage:
 /// await CallService.callNumber("+919876543210");
+/// await CallService.callNumber("9876543210");
 class CallService {
   static Future<void> callNumber(String phoneNumber) async {
-    final uri = Uri(scheme: 'tel', path: phoneNumber);
+    if (!FeatureService.isCallEnabled) {
+      throw Exception('Call feature is disabled. Enable it in settings.');
+    }
+
+    // Normalize the phone number: remove spaces, dashes, parentheses
+    String normalized = phoneNumber.replaceAll(RegExp(r'[\\s\\-\\(\\)]'), '');
+
+    // If number doesn't start with +, add +91 (India default)
+    if (!normalized.startsWith('+')) {
+      // If it starts with 0, remove it and add +91
+      if (normalized.startsWith('0')) {
+        normalized = '+91\${normalized.substring(1)}';
+      } else {
+        normalized = '+91\$normalized';
+      }
+    }
+
+    final uri = Uri.parse('tel:\$normalized');
 
     try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
-      } else {
-        if (kDebugMode) {
-          debugPrint('Could not launch dialer for \$phoneNumber');
-        }
-      }
+      await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('Error launching dialer: \$e');
+        debugPrint('Dialer launch failed: \$e');
       }
+      throw Exception('Unable to open dialer');
+    }
+  }
+}
+''';
+  }
+
+  static String contactModel() {
+    return '''
+class Contact {
+  final String name;
+  final String phoneNumber;
+
+  Contact({
+    required this.name,
+    required this.phoneNumber,
+  });
+
+  @override
+  String toString() => '\$name - \$phoneNumber';
+}
+''';
+  }
+
+  static String contactsService(String projectName) {
+    return '''
+import 'package:flutter_contacts/flutter_contacts.dart' as fc;
+import 'package:permission_handler/permission_handler.dart';
+import 'package:\$projectName/core/services/feature_service.dart';
+import 'package:\$projectName/core/modules/contacts/contact.dart';
+
+class PhoneContactsService {
+  static Future<Contact?> pickContact() async {
+    if (!FeatureService.isContactsEnabled) {
+      throw Exception('Contacts feature is disabled. Enable it in settings.');
+    }
+
+    final status = await Permission.contacts.request();
+    if (!status.isGranted) {
+      throw Exception('Contacts permission denied.');
+    }
+
+    try {
+      final fc.Contact? picked = await fc.FlutterContacts.openExternalPick();
+      if (picked == null) return null;
+
+      final name = picked.displayName.isNotEmpty
+          ? picked.displayName
+          : 'Unknown';
+      final phoneNumber = picked.phones.isNotEmpty
+          ? picked.phones.first.number
+          : '';
+
+      if (phoneNumber.isEmpty) {
+        throw Exception('Selected contact has no phone number.');
+      }
+
+      return Contact(name: name, phoneNumber: phoneNumber);
+    } catch (e) {
+      throw Exception('Error picking contact: \$e');
     }
   }
 }
