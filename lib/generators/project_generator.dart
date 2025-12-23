@@ -5,6 +5,8 @@ import 'package:superapp_cli/templates/EnhancedWidgetsPart2.dart';
 import 'package:superapp_cli/templates/EnhancedWidgetsTemplate.dart';
 import 'package:superapp_cli/templates/app_localization_template.dart';
 import 'package:superapp_cli/templates/app_router_template.dart';
+import 'package:superapp_cli/templates/native_permissions.dart' show NativePermissions;
+import 'package:superapp_cli/templates/onboarding_template.dart';
 import 'package:superapp_cli/templates/chatbot_templates.dart'
     show ChatbotTemplates;
 import 'package:superapp_cli/templates/docker_templates.dart'
@@ -13,7 +15,6 @@ import 'package:superapp_cli/templates/firebase_operations_template.dart';
 import 'package:superapp_cli/templates/main_template.dart';
 import 'package:superapp_cli/templates/modules_template.dart'
     show ModulesTemplate;
-import 'package:superapp_cli/templates/native_permissions.dart' show NativePermissions;
 import 'package:superapp_cli/templates/pubspec_template.dart';
 import 'package:superapp_cli/templates/theme_template.dart';
 import 'package:superapp_cli/templates/screen_templates.dart';
@@ -38,7 +39,7 @@ class ProjectGenerator {
             (selectedLanguages == null || selectedLanguages.isEmpty)
                 ? const ['en']
                 : selectedLanguages;
-
+final List<String> enabledFeatures;
   final String projectName;
   final String organization;
   final String stateManagement;
@@ -51,7 +52,6 @@ class ProjectGenerator {
   final String authType;
   final Logger logger;
   final List<String> selectedModules; // Add this field
-final List<String> enabledFeatures;
 
   Future<void> generate() async {
     // Step 1: Create Flutter project
@@ -79,7 +79,7 @@ final List<String> enabledFeatures;
       await _generateFirebaseOperations();
     }
     await _generateUtilityModules();
-    await configureNativePermissions();
+    await _configureNative();
     // Step 8: Generate screens
     await _generateScreens();
 
@@ -177,11 +177,69 @@ final List<String> enabledFeatures;
   }
 
 // Add this method to your ProjectGenerator class
-Future<void> configureNativePermissions() async {
-  await _configureAndroidManifest();
-  await _configureIosInfoPlist();
+  Future<void> _configureNative() async {
+    await _configureAndroidBuildGradle();
+    await _configureAndroidManifest();
+    await _configureIosInfoPlist();
+  }
+
+  Future<void> _configureAndroidBuildGradle() async {
+    final buildGradlePath = path.join(
+      projectName,
+      'android',
+      'app',
+      'build.gradle.kts',
+    );
+
+    final buildGradleFile = File(buildGradlePath);
+    if (!await buildGradleFile.exists()) {
+      logger.warn('build.gradle.kts not found at $buildGradlePath');
+      return;
+    }
+
+    var content = await buildGradleFile.readAsString();
+
+    // Update NDK version to 27.0.12077973 (required by modern plugins)
+    content = content.replaceAll(
+      'ndkVersion = flutter.ndkVersion',
+      'ndkVersion = "27.0.12077973"',
+    );
+
+    // Update minSdk to 23 (required by record_android and other plugins)
+    content = content.replaceAll(
+      'minSdk = flutter.minSdkVersion',
+      'minSdk = 23',
+    );
+
+    // Enable core library desugaring for flutter_local_notifications and other plugins
+    content = content.replaceAll(
+      'sourceCompatibility = JavaVersion.VERSION_11\n        targetCompatibility = JavaVersion.VERSION_11\n    }',
+      'sourceCompatibility = JavaVersion.VERSION_11\n        targetCompatibility = JavaVersion.VERSION_11\n        isCoreLibraryDesugaringEnabled = true\n    }',
+    );
+
+    // Add desugaring dependency if not already present
+    if (!content.contains('coreLibraryDesugaring')) {
+      // Find the flutter block and add dependencies after it
+      final flutterBlockMatch =
+          RegExp(r'flutter\s*\{\s*source\s*=\s*"\.\.\/\.\."\s*\}');
+      if (flutterBlockMatch.hasMatch(content)) {
+        content = content.replaceFirst(
+          flutterBlockMatch,
+          '''flutter {
+    source = "../.."
 }
 
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+}''',
+        );
+      }
+    }
+
+    await buildGradleFile.writeAsString(content);
+    logger.detail(
+        '✓ Updated Android build.gradle.kts with NDK 27, minSdk 23, and core library desugaring');
+  }
 Future<void> _configureAndroidManifest() async {
   final manifestPath = path.join(
     projectName,
@@ -318,7 +376,7 @@ Future<void> _configureIosInfoPlist() async {
         case 'camera':
           await FileUtils.writeFile(
             path.join(moduleDir, 'camera_service.dart'),
-            ModulesTemplate.cameraService(),
+            ModulesTemplate.cameraService(projectName),
           );
           logger.detail('✓ Generated camera_service.dart');
           break;
@@ -359,9 +417,29 @@ Future<void> _configureIosInfoPlist() async {
         case 'call':
           await FileUtils.writeFile(
             path.join(moduleDir, 'call_service.dart'),
-            ModulesTemplate.callService(),
+            ModulesTemplate.callService(projectName),
           );
           logger.detail('✓ Generated call_service.dart');
+          break;
+
+        case 'contacts':
+          // Create contacts directory
+          final contactsDir = path.join(modulesRoot, 'contacts');
+          await Directory(contactsDir).create(recursive: true);
+
+          // Generate Contact model
+          await FileUtils.writeFile(
+            path.join(contactsDir, 'contact.dart'),
+            ModulesTemplate.contactModel(),
+          );
+          logger.detail('✓ Generated contact.dart');
+
+          // Generate PhoneContactsService
+          await FileUtils.writeFile(
+            path.join(contactsDir, 'phone_contacts_service.dart'),
+            ModulesTemplate.contactsService(projectName),
+          );
+          logger.detail('✓ Generated phone_contacts_service.dart');
           break;
       }
     }
@@ -393,6 +471,11 @@ Future<void> _configureIosInfoPlist() async {
           break;
         case 'call':
           barrelContent.writeln("export 'call/call_service.dart';");
+          break;
+        case 'contacts':
+          barrelContent.writeln("export 'contacts/contact.dart';");
+          barrelContent
+              .writeln("export 'contacts/phone_contacts_service.dart';");
           break;
       }
     }
@@ -651,6 +734,21 @@ export 'dialogs/confirm_dialog.dart';
     );
     logger.detail('Generated SplashScreen at $splashScreenPath');
 
+    // Generate Onboarding Screen
+    final onboardingScreenPath = path.join(
+      projectName,
+      'lib',
+      'features',
+      'app',
+      'screens',
+      'onboarding_screen.dart',
+    );
+    await FileUtils.writeFile(
+      onboardingScreenPath,
+      OnboardingTemplate.generate(projectName),
+    );
+    logger.detail('Generated OnboardingScreen at $onboardingScreenPath');
+
     // Generate Home Screen
     final homeScreenPath = path.join(
       projectName,
@@ -836,6 +934,25 @@ void main() {
     );
     await FileUtils.writeFile(mainPath, content);
     logger.detail('Generated main.dart at $mainPath');
+
+    // Generate FeatureService
+    await _generateFeatureService();
+  }
+
+  Future<void> _generateFeatureService() async {
+    final featureServicePath = path.join(
+      projectName,
+      'lib',
+      'core',
+      'services',
+      'feature_service.dart',
+    );
+    await Directory(path.dirname(featureServicePath)).create(recursive: true);
+    await FileUtils.writeFile(
+      featureServicePath,
+      OnboardingTemplate.generateService(),
+    );
+    logger.detail('Generated FeatureService at $featureServicePath');
   }
 
   Future<void> _createFlutterProject() async {
@@ -882,6 +999,7 @@ void main() {
       'core/network',
       'core/storage',
       'core/config',
+      'core/services',
       'core/firebase',
       'core/constants',
       'config',

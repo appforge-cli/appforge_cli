@@ -269,42 +269,14 @@ class CreateCommand extends Command<int> {
       }
     }
 
-    // Prompt for Utility Modules
-    List<String> selectedModules = [];
-    if (!nonInteractive) {
-      logger.info('');
-      final wantsModules = logger.confirm(
-        '📱 Include utility modules (camera, speech, etc.)?',
-        defaultValue: false,
-      );
-
-      if (wantsModules) {
-        logger.info('');
-        logger.info('Select utility modules:');
-        
-        final moduleChoices = [
-          'camera - Camera service for photos/videos',
-          'speech - Speech-to-text & text-to-speech',
-          'recorder - Audio recording service',
-          'call - Phone call & VoIP service',
-        ];
-        
-        final selectedModuleChoices = logger.chooseAny(
-          '📦 Select modules (space to select, enter to continue):',
-          choices: moduleChoices,
-          defaultValues: [],
-        );
-        
-        // Extract module keys
-        selectedModules = selectedModuleChoices
-            .map((m) => m.split(' ').first)
-            .toList()
-            .cast<String>();
-      }
-    } else {
-      // In non-interactive mode, no modules selected by default
-      logger.detail('No utility modules selected in non-interactive mode.');
-    }
+    // Utility Modules now handled by onboarding (all generated, toggled at runtime)
+    final selectedModules = [
+      'camera',
+      'speech',
+      'recorder',
+      'call',
+      'contacts'
+    ];
 
     // Show summary before proceeding
     if (!nonInteractive) {
@@ -324,9 +296,10 @@ class CreateCommand extends Command<int> {
       if (includeFirebase && firebaseModules.isNotEmpty) {
         logger.info('  Firebase Modules: ${firebaseModules.join(', ')}');
       }
-      
+
       if (selectedModules.isNotEmpty) {
-        logger.info('  Utility Modules: ${_formatModuleNames(selectedModules)}');
+        logger
+            .info('  Utility Modules: ${_formatModuleNames(selectedModules)}');
       }
 
       logger.info('');
@@ -362,7 +335,7 @@ class CreateCommand extends Command<int> {
 
       await generator.generate();
       progress.complete('Project created successfully!');
-      
+
       // Run flutterfire configure inside the generated project folder
       if (includeFirebase == true) {
         logger.info('');
@@ -397,9 +370,10 @@ class CreateCommand extends Command<int> {
       if (includeFirebase && firebaseModules.isNotEmpty) {
         logger.success('   Modules: ${firebaseModules.join(', ')}');
       }
-      
+
       if (selectedModules.isNotEmpty) {
-        logger.success('   Utility Modules: ${_formatModuleNames(selectedModules)}');
+        logger.success(
+            '   Utility Modules: ${_formatModuleNames(selectedModules)}');
       }
 
       logger
@@ -463,7 +437,7 @@ class CreateCommand extends Command<int> {
           logger.info('    - Cloud Messaging (push notifications)');
         }
       }
-      
+
       if (selectedModules.isNotEmpty) {
         logger.info('  • Utility Modules:');
         if (selectedModules.contains('camera')) {
@@ -611,7 +585,7 @@ class CreateCommand extends Command<int> {
         return 'Login & Signup screens';
     }
   }
-  
+
   String _formatModuleNames(List<String> modules) {
     final Map<String, String> moduleDisplayNames = {
       'camera': '📸 Camera',
@@ -619,7 +593,7 @@ class CreateCommand extends Command<int> {
       'recorder': '🎙️ Recorder',
       'call': '📞 Call',
     };
-    
+
     return modules.map((m) => moduleDisplayNames[m] ?? m).join(', ');
   }
 }

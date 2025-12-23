@@ -73,11 +73,11 @@ class PubspecTemplate {
         '  flutter_bloc: ^8.1.6',
         '  equatable: ^2.0.7',
       ]);
-      
+
       // Remove duplicates if bloc is already added for state management
       if (stateManagement == 'bloc') {
-        chatbotDeps.removeWhere((dep) => 
-          dep.contains('flutter_bloc') || dep.contains('equatable'));
+        chatbotDeps.removeWhere(
+            (dep) => dep.contains('flutter_bloc') || dep.contains('equatable'));
       }
     }
 
@@ -108,6 +108,16 @@ ${chatbotDeps.isEmpty ? '' : '${chatbotDeps.join('\n')}\n  '}
   # Utilities
   http: ^1.2.2
   shared_preferences: ^2.3.3
+  image_picker: ^1.0.7
+  permission_handler: ^11.3.1
+  speech_to_text: ^7.3.0
+  flutter_tts: ^4.0.2
+  record: ^6.1.2
+  path_provider: ^2.1.4
+  url_launcher: ^6.3.0
+  flutter_contacts: ^1.1.7
+  provider: ^6.1.5+1
+  
   ${includeChatbot ? '# dio already included for chatbot' : 'dio: ^5.7.0'}
 
 dev_dependencies:
@@ -115,14 +125,6 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0
   build_runner: ^2.4.13
-  provider: ^6.1.5+1
-  image_picker: ^1.0.7
-  permission_handler: ^11.3.1
-  speech_to_text: ^6.6.0
-  flutter_tts: ^4.0.2
-  record: ^5.1.0
-  path_provider: ^2.1.4
-  url_launcher: ^6.3.0
 
 flutter:
   uses-material-design: true
