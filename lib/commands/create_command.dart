@@ -36,9 +36,15 @@ class CreateCommand extends Command<int> {
         defaultsTo: false,
       )
       ..addFlag(
+        'web',
+        abbr: 'w',
+        help: 'Include Flutter Web support',
+        defaultsTo: false,
+      )
+      ..addFlag(
         'docker',
         abbr: 'd',
-        help: 'Include Docker setup for deployment',
+        help: 'Include Docker setup for Flutter Web deployment',
         defaultsTo: false,
       )
       ..addFlag(
@@ -57,7 +63,8 @@ class CreateCommand extends Command<int> {
   final Logger logger;
 
   @override
-  String get description => 'Create a new production-ready Flutter app';
+  String get description =>
+      'Create a new production-ready Flutter app (mobile-first, web optional)';
 
   @override
   String get name => 'create';
@@ -74,6 +81,10 @@ class CreateCommand extends Command<int> {
     final firebaseFlagProvided = argResults?.wasParsed('firebase') ?? false;
     bool? includeFirebase =
         firebaseFlagProvided ? (argResults?['firebase'] as bool?) : null;
+
+    // Check if web flag was explicitly provided
+    final webFlagProvided = argResults?.wasParsed('web') ?? false;
+    bool? includeWeb = webFlagProvided ? (argResults?['web'] as bool?) : null;
 
     // Check if docker flag was explicitly provided
     final dockerFlagProvided = argResults?.wasParsed('docker') ?? false;
@@ -208,17 +219,45 @@ class CreateCommand extends Command<int> {
       firebaseModules = ['core', 'auth', 'firestore', 'storage', 'fcm'];
     }
 
-    // Prompt for Docker if not provided
-    if (includeDocker == null && !nonInteractive) {
+    // Prompt for Flutter Web support
+    if (includeWeb == null && !nonInteractive) {
       logger.info('');
-      includeDocker = logger.confirm(
-        '🐳 Include Docker setup for deployment?',
+      includeWeb = logger.confirm(
+        '🌐 Include Flutter Web support?',
         defaultValue: false,
       );
+    } else if (includeWeb == null) {
+      includeWeb = false;
+      logger.detail(
+          'Web support not specified; defaulting to false in non-interactive mode.');
+    }
+
+    // Prompt for Docker if Web is enabled and not provided
+    if (includeDocker == null && !nonInteractive) {
+      if (includeWeb) {
+        logger.info('');
+        includeDocker = logger.confirm(
+          '🐳 Include Docker setup for Flutter Web deployment?',
+          defaultValue: false,
+        );
+      } else {
+        includeDocker = false;
+      }
     } else if (includeDocker == null) {
       includeDocker = false;
       logger.detail(
           'Docker not specified; defaulting to false in non-interactive mode.');
+    } else if (includeDocker == true && !includeWeb) {
+      // Edge case: Docker flag provided but web not enabled
+      logger.warn('⚠️  Docker is only applicable for Flutter Web deployment.');
+      logger.warn('Enabling Flutter Web support automatically...');
+      includeWeb = true;
+    }
+
+    // Handle non-interactive mode edge case
+    if (nonInteractive && includeDocker && !includeWeb) {
+      includeWeb = true;
+      logger.detail('Docker requires web; auto-enabling Flutter Web.');
     }
 
     // Prompt for localization
@@ -290,8 +329,14 @@ class CreateCommand extends Command<int> {
         ..info('  Auth Type: ${_getAuthTypeDisplay(authType)}')
         ..info('  AI Chatbot: ${includeChatbot ? '🤖 Yes' : '✗ No'}')
         ..info('  Firebase: ${includeFirebase ? '🔥 Yes' : '✗ No'}')
-        ..info('  Docker: ${includeDocker ? '🐳 Yes' : '✗ No'}')
         ..info('  Languages: 🌍 ${selectedLanguages.join(', ')}');
+
+      if (includeWeb) {
+        logger.info('  Flutter Web: 🌐 Yes');
+        logger.info('  Docker: ${includeDocker ? '🐳 Yes' : '✗ No'}');
+      } else {
+        logger.info('  Flutter Web: ✗ No (Mobile-only)');
+      }
 
       if (includeFirebase && firebaseModules.isNotEmpty) {
         logger.info('  Firebase Modules: ${firebaseModules.join(', ')}');
@@ -326,11 +371,12 @@ class CreateCommand extends Command<int> {
         firebaseModules: firebaseModules,
         includeChatbot: includeChatbot,
         includeDocker: includeDocker,
+        includeWeb: includeWeb,
         selectedLanguages: selectedLanguages,
         themeColor: themeColor!,
         authType: authType,
         logger: logger,
-        selectedModules: selectedModules, // Pass selected modules
+        selectedModules: selectedModules,
       );
 
       await generator.generate();
@@ -364,8 +410,14 @@ class CreateCommand extends Command<int> {
         ..success(
             '🤖 AI Chatbot: ${includeChatbot ? 'Enabled (Gemini)' : 'Disabled'}')
         ..success('🔥 Firebase: ${includeFirebase ? 'Enabled' : 'Disabled'}')
-        ..success('🐳 Docker: ${includeDocker ? 'Enabled' : 'Disabled'}')
         ..success('🌍 Languages: ${selectedLanguages.join(', ')}');
+
+      if (includeWeb) {
+        logger.success('🌐 Flutter Web: Enabled');
+        logger.success('🐳 Docker: ${includeDocker ? 'Enabled' : 'Disabled'}');
+      } else {
+        logger.success('🌐 Flutter Web: Disabled (Mobile-only)');
+      }
 
       if (includeFirebase && firebaseModules.isNotEmpty) {
         logger.success('   Modules: ${firebaseModules.join(', ')}');
@@ -391,14 +443,20 @@ class CreateCommand extends Command<int> {
         logger.info('  3. flutter run');
       }
 
-      if (includeDocker) {
+      if (includeWeb && includeDocker) {
         logger
           ..info('')
-          ..info('🐳 Docker is ready!')
+          ..info('🐳 Docker is ready for Flutter Web!')
           ..info('  • make build    - Build Docker image')
           ..info('  • make run      - Run production')
           ..info('  • make dev      - Development with hot-reload')
           ..info('  • See DOCKER.md for complete documentation');
+      } else if (includeWeb && !includeDocker) {
+        logger
+          ..info('')
+          ..info('🌐 Flutter Web Commands:')
+          ..info('  • flutter run -d chrome    - Run in browser')
+          ..info('  • flutter build web        - Build for production');
       }
 
       logger
@@ -455,12 +513,17 @@ class CreateCommand extends Command<int> {
         }
       }
 
-      if (includeDocker) {
-        logger.info('  • Docker multi-stage build (Flutter + Nginx)');
-        logger.info('  • Docker Compose for easy orchestration');
-        logger.info('  • Production-ready with PostgreSQL & Redis');
-        logger.info('  • Makefile for convenient commands');
-        logger.info('  • GitHub Actions CI/CD workflow');
+      if (includeWeb) {
+        logger.info('  • Flutter Web build configuration');
+        logger.info('  • Web-optimized assets and routing');
+
+        if (includeDocker) {
+          logger.info('  • Docker multi-stage build (Flutter + Nginx)');
+          logger.info('  • Docker Compose for easy orchestration');
+          logger.info('  • Production-ready with PostgreSQL & Redis');
+          logger.info('  • Makefile for convenient commands');
+          logger.info('  • GitHub Actions CI/CD workflow');
+        }
       }
 
       if (selectedLanguages.length > 1) {
@@ -471,6 +534,11 @@ class CreateCommand extends Command<int> {
         logger.info('  • RTL support for Arabic');
       }
 
+      logger.info('');
+      logger.info(
+          'ℹ️  Note: Docker support is optional and applies only to Flutter Web builds.');
+      logger.info(
+          '   Mobile apps are deployed via Play Store / App Store as usual.');
       logger.info('');
 
       return 0;
@@ -491,16 +559,13 @@ class CreateCommand extends Command<int> {
       final process = await Process.start(
         'flutterfire',
         ['configure'],
-        workingDirectory: projectName, // 👈 this is your "cd projectName"
+        workingDirectory: projectName,
         runInShell: true,
       );
 
       // Pipe stdout/stderr to current console so user sees prompts
       stdout.addStream(process.stdout);
       stderr.addStream(process.stderr);
-
-      // Optional: if you want to allow user to type into flutterfire:
-      // stdin.pipe(process.stdin);
 
       final exitCode = await process.exitCode;
 

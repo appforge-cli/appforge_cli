@@ -5,7 +5,8 @@ import 'package:superapp_cli/templates/EnhancedWidgetsPart2.dart';
 import 'package:superapp_cli/templates/EnhancedWidgetsTemplate.dart';
 import 'package:superapp_cli/templates/app_localization_template.dart';
 import 'package:superapp_cli/templates/app_router_template.dart';
-import 'package:superapp_cli/templates/native_permissions.dart' show NativePermissions;
+import 'package:superapp_cli/templates/native_permissions.dart'
+    show NativePermissions;
 import 'package:superapp_cli/templates/onboarding_template.dart';
 import 'package:superapp_cli/templates/chatbot_templates.dart'
     show ChatbotTemplates;
@@ -31,15 +32,18 @@ class ProjectGenerator {
     this.includeDocker = false,
     this.selectedModules = const [], // Add this
     this.enabledFeatures = const [], // Add this
+
     List<String>? selectedLanguages,
     required this.themeColor,
     required this.authType,
     required this.logger,
+    this.includeWeb = false,
   }) : selectedLanguages =
             (selectedLanguages == null || selectedLanguages.isEmpty)
                 ? const ['en']
                 : selectedLanguages;
-final List<String> enabledFeatures;
+
+  final List<String> enabledFeatures;
   final String projectName;
   final String organization;
   final String stateManagement;
@@ -47,6 +51,7 @@ final List<String> enabledFeatures;
   final List<String> firebaseModules;
   final bool includeChatbot;
   final bool includeDocker;
+  final bool includeWeb;
   final List<String> selectedLanguages; // always non-null, at least ['en']
   final String themeColor;
   final String authType;
@@ -101,7 +106,13 @@ final List<String> enabledFeatures;
     }
 
     // Step 14: Generate Docker setup if enabled
-    if (includeDocker) {
+    // Step 14: Enable Flutter Web if requested
+    if (includeWeb) {
+      await _enableFlutterWeb();
+    }
+
+// Step 15: Generate Docker setup if Web + Docker enabled
+    if (includeWeb && includeDocker) {
       await _generateDockerSetup();
     }
 
@@ -240,112 +251,113 @@ dependencies {
     logger.detail(
         '✓ Updated Android build.gradle.kts with NDK 27, minSdk 23, and core library desugaring');
   }
-Future<void> _configureAndroidManifest() async {
-  final manifestPath = path.join(
-    projectName,
-    'android',
-    'app',
-    'src',
-    'main',
-    'AndroidManifest.xml',
-  );
 
-  final file = File(manifestPath);
-  if (!await file.exists()) {
-    logger.warn('AndroidManifest.xml not found');
-    return;
-  }
-
-  var content = await file.readAsString();
-
-  final permissions = <String>{
-    'android.permission.INTERNET',
-    'android.permission.ACCESS_NETWORK_STATE',
-  };
-
-  for (final feature in enabledFeatures) {
-    permissions.addAll(NativePermissions.android[feature] ?? []);
-  }
-
-  final buffer = StringBuffer();
-  for (final p in permissions) {
-    if (!content.contains(p)) {
-      buffer.writeln(
-          '    <uses-permission android:name="$p" />');
-    }
-  }
-
-  if (buffer.isEmpty) {
-    logger.detail('Android permissions already present');
-    return;
-  }
-
-  if (content.contains('<application')) {
-    content = content.replaceFirst(
-      '<application',
-      '${buffer.toString()}\n    <application',
+  Future<void> _configureAndroidManifest() async {
+    final manifestPath = path.join(
+      projectName,
+      'android',
+      'app',
+      'src',
+      'main',
+      'AndroidManifest.xml',
     );
-  } else {
-    content = content.replaceFirst(
-      '</manifest>',
-      '${buffer.toString()}\n</manifest>',
+
+    final file = File(manifestPath);
+    if (!await file.exists()) {
+      logger.warn('AndroidManifest.xml not found');
+      return;
+    }
+
+    var content = await file.readAsString();
+
+    final permissions = <String>{
+      'android.permission.INTERNET',
+      'android.permission.ACCESS_NETWORK_STATE',
+    };
+
+    for (final feature in enabledFeatures) {
+      permissions.addAll(NativePermissions.android[feature] ?? []);
+    }
+
+    final buffer = StringBuffer();
+    for (final p in permissions) {
+      if (!content.contains(p)) {
+        buffer.writeln('    <uses-permission android:name="$p" />');
+      }
+    }
+
+    if (buffer.isEmpty) {
+      logger.detail('Android permissions already present');
+      return;
+    }
+
+    if (content.contains('<application')) {
+      content = content.replaceFirst(
+        '<application',
+        '${buffer.toString()}\n    <application',
+      );
+    } else {
+      content = content.replaceFirst(
+        '</manifest>',
+        '${buffer.toString()}\n</manifest>',
+      );
+    }
+
+    await file.writeAsString(content);
+    logger.detail('✓ Android permissions injected');
+  }
+
+  Future<void> _configureIosInfoPlist() async {
+    final plistPath = path.join(
+      projectName,
+      'ios',
+      'Runner',
+      'Info.plist',
     );
-  }
 
-  await file.writeAsString(content);
-  logger.detail('✓ Android permissions injected');
-}
-Future<void> _configureIosInfoPlist() async {
-  final plistPath = path.join(
-    projectName,
-    'ios',
-    'Runner',
-    'Info.plist',
-  );
-
-  final file = File(plistPath);
-  if (!await file.exists()) {
-    logger.warn('Info.plist not found');
-    return;
-  }
-
-  var content = await file.readAsString();
-
-  final Map<String, String> entries = {};
-
-  for (final feature in enabledFeatures) {
-    final map = NativePermissions.ios[feature];
-    if (map != null) {
-      entries.addAll(map);
+    final file = File(plistPath);
+    if (!await file.exists()) {
+      logger.warn('Info.plist not found');
+      return;
     }
-  }
 
-  if (entries.isEmpty) {
-    logger.detail('No iOS permissions needed');
-    return;
-  }
+    var content = await file.readAsString();
 
-  final buffer = StringBuffer();
-  for (final entry in entries.entries) {
-    if (!content.contains('<key>${entry.key}</key>')) {
-      buffer.writeln('    <key>${entry.key}</key>');
-      buffer.writeln('    <string>${entry.value}</string>');
+    final Map<String, String> entries = {};
+
+    for (final feature in enabledFeatures) {
+      final map = NativePermissions.ios[feature];
+      if (map != null) {
+        entries.addAll(map);
+      }
     }
+
+    if (entries.isEmpty) {
+      logger.detail('No iOS permissions needed');
+      return;
+    }
+
+    final buffer = StringBuffer();
+    for (final entry in entries.entries) {
+      if (!content.contains('<key>${entry.key}</key>')) {
+        buffer.writeln('    <key>${entry.key}</key>');
+        buffer.writeln('    <string>${entry.value}</string>');
+      }
+    }
+
+    if (buffer.isEmpty) {
+      logger.detail('iOS permissions already present');
+      return;
+    }
+
+    content = content.replaceFirst(
+      '</dict>',
+      '${buffer.toString()}\n</dict>',
+    );
+
+    await file.writeAsString(content);
+    logger.detail('✓ iOS permissions injected');
   }
-
-  if (buffer.isEmpty) {
-    logger.detail('iOS permissions already present');
-    return;
-  }
-
-  content = content.replaceFirst(
-    '</dict>',
-    '${buffer.toString()}\n</dict>',
-  );
-
-  await file.writeAsString(content);
-  logger.detail('✓ iOS permissions injected');
-}
 
   Future<void> _generateUtilityModules() async {
     if (selectedModules.isEmpty) {
@@ -1208,6 +1220,10 @@ void main() {
   }
 
   Future<void> _generateDockerSetup() async {
+    if (!includeWeb) {
+      logger.warn('⚠️  Docker setup requires Flutter Web to be enabled');
+      return;
+    }
     logger.info('');
     logger.info('🐳 Generating Docker setup...');
 
@@ -1283,6 +1299,74 @@ void main() {
     logger.info('  make logs       - View logs');
     logger.info('');
     logger.info('📖 See DOCKER.md for complete documentation');
+  }
+
+  Future<void> _enableFlutterWeb() async {
+    logger.info('');
+    logger.info('🌐 Enabling Flutter Web support...');
+
+    // Check if web is already enabled
+    final webDir = Directory(path.join(projectName, 'web'));
+    if (await webDir.exists()) {
+      logger.detail('✓ Web directory already exists');
+      return;
+    }
+
+    try {
+      // Enable web platform
+      final result = await Process.run(
+        'flutter',
+        ['create', '.', '--platforms=web'],
+        workingDirectory: projectName,
+        runInShell: true,
+      );
+
+      if (result.exitCode == 0) {
+        logger.success('✓ Flutter Web enabled successfully!');
+
+        // Update index.html title
+        await _updateWebIndexHtml();
+
+        logger.info('');
+        logger.info('📝 Next steps for web:');
+        logger.info('  • Test locally: flutter run -d chrome');
+        logger.info('  • Build: flutter build web');
+        if (includeDocker) {
+          logger.info('  • Deploy: make build && make run');
+        }
+      } else {
+        logger.warn('Warning: Failed to enable Flutter Web');
+        logger.detail('stdout: ${result.stdout}');
+        logger.detail('stderr: ${result.stderr}');
+      }
+    } catch (e) {
+      logger.err('Error enabling Flutter Web: $e');
+    }
+  }
+
+  Future<void> _updateWebIndexHtml() async {
+    final indexPath = path.join(projectName, 'web', 'index.html');
+    final file = File(indexPath);
+
+    if (!await file.exists()) return;
+
+    var content = await file.readAsString();
+
+    // Update title
+    content = content.replaceFirst(
+      '<title>$projectName</title>',
+      '<title>${_formatAppName(projectName)}</title>',
+    );
+
+    await file.writeAsString(content);
+    logger.detail('✓ Updated web/index.html');
+  }
+
+  String _formatAppName(String name) {
+    return name
+        .split('_')
+        .map((word) => word[0].toUpperCase() + word.substring(1))
+        .join(' ');
   }
 
   Future<void> _generateLocalization() async {
