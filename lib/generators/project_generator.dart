@@ -30,9 +30,8 @@ class ProjectGenerator {
     this.firebaseModules = const [],
     this.includeChatbot = false,
     this.includeDocker = false,
-    this.selectedModules = const [], // Add this
-    this.enabledFeatures = const [], // Add this
-
+    this.selectedModules = const [],
+    this.enabledFeatures = const [],
     List<String>? selectedLanguages,
     required this.themeColor,
     required this.authType,
@@ -52,76 +51,95 @@ class ProjectGenerator {
   final bool includeChatbot;
   final bool includeDocker;
   final bool includeWeb;
-  final List<String> selectedLanguages; // always non-null, at least ['en']
+  final List<String> selectedLanguages;
   final String themeColor;
   final String authType;
   final Logger logger;
-  final List<String> selectedModules; // Add this field
+  final List<String> selectedModules;
 
   Future<void> generate() async {
-    // Step 1: Create Flutter project
-    await _createFlutterProject();
+    final progress = logger.progress('Creating Flutter app: $projectName');
 
-    // Step 2: Generate folder structure
-    await _generateFolderStructure();
+    try {
+      // Step 1: Create Flutter project
+      await _createFlutterProject();
+      progress.update('Creating Flutter app: $projectName');
 
-    // Step 3: Generate pubspec.yaml with all dependencies
-    await _generatePubspec();
+      // Step 2: Generate folder structure
+      await _generateFolderStructure();
+      progress.update('Setting up project structure');
 
-    // Step 4: Generate theme
-    await _generateTheme();
+      // Step 3: Generate pubspec.yaml with all dependencies
+      await _generatePubspec();
+      progress.update('Configuring dependencies');
 
-    // Step 5: Generate reusable widgets
-    await _generateEnhancedReusableWidgets();
+      // Step 4: Generate theme
+      await _generateTheme();
+      progress.update('Generating theme');
 
-    // Step 6: Generate chatbot if enabled
-    if (includeChatbot) {
-      await _generateChatbot();
+      // Step 5: Generate reusable widgets
+      await _generateEnhancedReusableWidgets();
+
+      // Step 6: Generate chatbot if enabled
+      if (includeChatbot) {
+        await _generateChatbot();
+      }
+
+      // Step 7: Generate Firebase operations if enabled
+      if (includeFirebase && firebaseModules.isNotEmpty) {
+        await _generateFirebaseOperations();
+      }
+
+      await _generateUtilityModules();
+      await _configureNative();
+
+      // Step 8: Generate screens
+      await _generateScreens();
+
+      // Step 9: Generate router
+      await _generateRouter();
+
+      // Step 10: Generate main.dart
+      await _generateMainFile();
+
+      // Step 11: Replace default test with a compatible smoke test
+      await _generateTestFile();
+
+      // Step 12: Run flutter pub get
+      await _runFlutterPubGet();
+
+      // Step 13: Enable Flutter Web if requested
+      if (includeWeb) {
+        await _enableFlutterWeb();
+      }
+
+      // Step 14: Generate Docker setup if Web + Docker enabled
+      if (includeWeb && includeDocker) {
+        await _generateDockerSetup();
+      }
+
+      // Step 15: Generate localization files
+      if (selectedLanguages.isNotEmpty && selectedLanguages.length > 1) {
+        await _generateLocalization();
+      }
+
+      // Complete the progress before Firebase config
+      progress.complete('Project created successfully!');
+
+      // Step 16: Configure Firebase AFTER completing progress
+      // This is crucial - Firebase config needs interactive input
+      if (includeFirebase) {
+        await _configureFirebase();
+      }
+
+      logger
+          .success('✨ Project generated successfully with $themeColor theme!');
+    } catch (e, st) {
+      progress.fail('Failed to create project');
+      logger.err('Error: $e');
+      logger.detail(st.toString());
+      rethrow;
     }
-
-    // Step 7: Generate Firebase operations if enabled
-    if (includeFirebase && firebaseModules.isNotEmpty) {
-      await _generateFirebaseOperations();
-    }
-    await _generateUtilityModules();
-    await _configureNative();
-    // Step 8: Generate screens
-    await _generateScreens();
-
-    // Step 9: Generate router
-    await _generateRouter();
-
-    // Step 10: Generate main.dart
-    await _generateMainFile();
-
-    // Step 11: Replace default test with a compatible smoke test
-    await _generateTestFile();
-
-    // Step 12: Run flutter pub get
-    await _runFlutterPubGet();
-
-    // Step 13: Configure Firebase if needed
-    if (includeFirebase) {
-      await _configureFirebase();
-    }
-
-    // Step 14: Generate Docker setup if enabled
-    // Step 14: Enable Flutter Web if requested
-    if (includeWeb) {
-      await _enableFlutterWeb();
-    }
-
-// Step 15: Generate Docker setup if Web + Docker enabled
-    if (includeWeb && includeDocker) {
-      await _generateDockerSetup();
-    }
-
-    // Step 15: Generate localization files
-    if (selectedLanguages.isNotEmpty && selectedLanguages.length > 1) {
-      await _generateLocalization();
-    }
-
-    logger.success('✨ Project generated successfully with $themeColor theme!');
   }
 
   // Add this method to prompt for modules
@@ -130,7 +148,6 @@ class ProjectGenerator {
     logger.info('📱 Utility Module Selection');
     logger.info('Select which utility modules to include:');
 
-    // Define available modules with descriptions
     final availableModules = {
       'camera': {
         'name': '📸 Camera Module',
@@ -187,7 +204,6 @@ class ProjectGenerator {
     return modules;
   }
 
-// Add this method to your ProjectGenerator class
   Future<void> _configureNative() async {
     await _configureAndroidBuildGradle();
     await _configureAndroidManifest();
@@ -210,27 +226,22 @@ class ProjectGenerator {
 
     var content = await buildGradleFile.readAsString();
 
-    // Update NDK version to 27.0.12077973 (required by modern plugins)
     content = content.replaceAll(
       'ndkVersion = flutter.ndkVersion',
       'ndkVersion = "27.0.12077973"',
     );
 
-    // Update minSdk to 23 (required by record_android and other plugins)
     content = content.replaceAll(
       'minSdk = flutter.minSdkVersion',
       'minSdk = 23',
     );
 
-    // Enable core library desugaring for flutter_local_notifications and other plugins
     content = content.replaceAll(
       'sourceCompatibility = JavaVersion.VERSION_11\n        targetCompatibility = JavaVersion.VERSION_11\n    }',
       'sourceCompatibility = JavaVersion.VERSION_11\n        targetCompatibility = JavaVersion.VERSION_11\n        isCoreLibraryDesugaringEnabled = true\n    }',
     );
 
-    // Add desugaring dependency if not already present
     if (!content.contains('coreLibraryDesugaring')) {
-      // Find the flutter block and add dependencies after it
       final flutterBlockMatch =
           RegExp(r'flutter\s*\{\s*source\s*=\s*"\.\.\/\.\."\s*\}');
       if (flutterBlockMatch.hasMatch(content)) {
@@ -367,19 +378,9 @@ dependencies {
     logger.info('⚙️ Generating utility modules (camera, voice, call)...');
 
     final modulesRoot = path.join(projectName, 'lib', 'core', 'modules');
-    final cameraDir = path.join(modulesRoot, 'camera');
-    final voiceDir = path.join(modulesRoot, 'voice');
-    final callDir = path.join(modulesRoot, 'call');
 
-    // Ensure directories exist
-    await Directory(cameraDir).create(recursive: true);
-    await Directory(voiceDir).create(recursive: true);
-    await Directory(callDir).create(recursive: true);
-
-    // Create modules root directory
     await Directory(modulesRoot).create(recursive: true);
 
-    // Create module-specific directories only for selected modules
     for (final module in selectedModules) {
       final moduleDir = path.join(modulesRoot, module);
       await Directory(moduleDir).create(recursive: true);
@@ -394,18 +395,15 @@ dependencies {
           break;
 
         case 'speech':
-          // Create voice directory for speech modules
           final voiceDir = path.join(modulesRoot, 'voice');
           await Directory(voiceDir).create(recursive: true);
 
-          // Generate speech-to-text service
           await FileUtils.writeFile(
             path.join(voiceDir, 'speech_service.dart'),
             ModulesTemplate.speechService(),
           );
           logger.detail('✓ Generated speech_service.dart');
 
-          // Generate text-to-speech service
           await FileUtils.writeFile(
             path.join(voiceDir, 'tts_service.dart'),
             ModulesTemplate.ttsService(),
@@ -414,11 +412,9 @@ dependencies {
           break;
 
         case 'recorder':
-          // Create voice directory for recorder
           final voiceDir = path.join(modulesRoot, 'voice');
           await Directory(voiceDir).create(recursive: true);
 
-          // Generate audio recorder service
           await FileUtils.writeFile(
             path.join(voiceDir, 'audio_recorder_service.dart'),
             ModulesTemplate.audioRecorderService(),
@@ -435,18 +431,15 @@ dependencies {
           break;
 
         case 'contacts':
-          // Create contacts directory
           final contactsDir = path.join(modulesRoot, 'contacts');
           await Directory(contactsDir).create(recursive: true);
 
-          // Generate Contact model
           await FileUtils.writeFile(
             path.join(contactsDir, 'contact.dart'),
             ModulesTemplate.contactModel(),
           );
           logger.detail('✓ Generated contact.dart');
 
-          // Generate PhoneContactsService
           await FileUtils.writeFile(
             path.join(contactsDir, 'phone_contacts_service.dart'),
             ModulesTemplate.contactsService(projectName),
@@ -456,7 +449,6 @@ dependencies {
       }
     }
 
-    // Generate barrel file for all selected modules
     await _generateModulesBarrelFile(modulesRoot, selectedModules);
 
     logger.success('✨ Utility modules generated successfully!');
@@ -502,44 +494,31 @@ dependencies {
 
     final widgetsBasePath = path.join(projectName, 'lib', 'shared', 'widgets');
 
-    // Define widget structure
     final widgetFiles = {
-      // Buttons
       'buttons/primary_button.dart':
           EnhancedWidgetsTemplate.generatePrimaryButton(),
       'buttons/secondary_button.dart':
           EnhancedWidgetsTemplate.generateSecondaryButton(),
       'buttons/social_auth_button.dart':
           EnhancedWidgetsTemplate.generateSocialAuthButton(),
-
-      // Inputs
       'inputs/app_text_field.dart':
           EnhancedWidgetsTemplate.generateAppTextField(),
       'inputs/password_field.dart':
           EnhancedWidgetsTemplate.generatePasswordField(),
       'inputs/otp_input.dart': EnhancedWidgetsTemplate.generateOTPInput(),
-
-      // Cards
       'cards/info_card.dart': EnhancedWidgetsPart2.generateInfoCard(),
       'cards/profile_card.dart': EnhancedWidgetsPart2.generateProfileCard(),
-
-      // Navigation
       'navigation/custom_app_bar.dart':
           EnhancedWidgetsPart2.generateCustomAppBar(),
       'navigation/bottom_nav_bar.dart':
           EnhancedWidgetsPart2.generateBottomNavBar(),
-
-      // States
       'states/app_loader.dart': EnhancedWidgetsPart2.generateAppLoader(),
       'states/empty_state.dart': EnhancedWidgetsPart2.generateEmptyState(),
       'states/error_state.dart': EnhancedWidgetsPart2.generateErrorState(),
-
-      // Dialogs
       'dialogs/confirm_dialog.dart':
           EnhancedWidgetsPart2.generateConfirmDialog(),
     };
 
-    // Create directories and generate files
     for (final entry in widgetFiles.entries) {
       final filePath = path.join(widgetsBasePath, entry.key);
       await Directory(path.dirname(filePath)).create(recursive: true);
@@ -547,7 +526,6 @@ dependencies {
       logger.detail('✓ Generated ${entry.key}');
     }
 
-    // Generate barrel file
     await _generateWidgetsBarrelFile(widgetsBasePath);
 
     logger.success('✨ Enhanced widgets generated successfully!');
@@ -556,32 +534,19 @@ dependencies {
   Future<void> _generateWidgetsBarrelFile(String widgetsDir) async {
     final barrelContent = '''
 // Barrel file for shared widgets
-// Import this file to access all reusable widgets
-
-// Buttons
 export 'buttons/primary_button.dart';
 export 'buttons/secondary_button.dart';
 export 'buttons/social_auth_button.dart';
-
-// Inputs
 export 'inputs/app_text_field.dart';
 export 'inputs/password_field.dart';
 export 'inputs/otp_input.dart';
-
-// Cards
 export 'cards/info_card.dart';
 export 'cards/profile_card.dart';
-
-// Navigation
 export 'navigation/custom_app_bar.dart';
 export 'navigation/bottom_nav_bar.dart';
-
-// States
 export 'states/app_loader.dart';
 export 'states/empty_state.dart';
 export 'states/error_state.dart';
-
-// Dialogs
 export 'dialogs/confirm_dialog.dart';
 ''';
 
@@ -590,11 +555,6 @@ export 'dialogs/confirm_dialog.dart';
     logger.detail('✓ Generated widgets.dart (barrel file)');
   }
 
-// UPDATE the generate() method in ProjectGenerator:
-// Replace this line:
-//   await _generateReusableWidgets();
-// With:
-//   await _generateEnhancedReusableWidgets();
   Future<void> _generateTheme() async {
     final themePath =
         path.join(projectName, 'lib', 'app', 'theme', 'app_theme.dart');
@@ -624,7 +584,6 @@ export 'dialogs/confirm_dialog.dart';
     final chatbotBasePath =
         path.join(projectName, 'lib', 'features', 'chatbot');
 
-    // Create all necessary directories
     final directories = [
       path.join(chatbotBasePath, 'screens'),
       path.join(chatbotBasePath, 'services'),
@@ -636,7 +595,6 @@ export 'dialogs/confirm_dialog.dart';
       await Directory(dir).create(recursive: true);
     }
 
-    // Generate Chatbot Screen (with BLoC)
     final chatbotScreenPath =
         path.join(chatbotBasePath, 'screens', 'chatbot_screen.dart');
     await FileUtils.writeFile(
@@ -645,7 +603,6 @@ export 'dialogs/confirm_dialog.dart';
     );
     logger.detail('✓ Generated chatbot_screen.dart');
 
-    // Generate Chatbot Service
     final chatbotServicePath =
         path.join(chatbotBasePath, 'services', 'chatbot_service.dart');
     await FileUtils.writeFile(
@@ -654,7 +611,6 @@ export 'dialogs/confirm_dialog.dart';
     );
     logger.detail('✓ Generated chatbot_service.dart');
 
-    // Generate Chat Message Model
     final chatMessageModelPath =
         path.join(chatbotBasePath, 'models', 'chat_message_model.dart');
     await FileUtils.writeFile(
@@ -663,31 +619,26 @@ export 'dialogs/confirm_dialog.dart';
     );
     logger.detail('✓ Generated chat_message_model.dart');
 
-    // Generate BLoC files
     final blocPath = path.join(chatbotBasePath, 'bloc');
 
-    // Generate chatbot_bloc.dart
     await FileUtils.writeFile(
       path.join(blocPath, 'chatbot_bloc.dart'),
       ChatbotTemplates.generateChatbotBloc(),
     );
     logger.detail('✓ Generated chatbot_bloc.dart');
 
-    // Generate chatbot_event.dart
     await FileUtils.writeFile(
       path.join(blocPath, 'chatbot_event.dart'),
       ChatbotTemplates.generateChatbotEvent(),
     );
     logger.detail('✓ Generated chatbot_event.dart');
 
-    // Generate chatbot_state.dart
     await FileUtils.writeFile(
       path.join(blocPath, 'chatbot_state.dart'),
       ChatbotTemplates.generateChatbotState(),
     );
     logger.detail('✓ Generated chatbot_state.dart');
 
-    // Generate app_constants.dart
     final constantsDir = path.join(projectName, 'lib', 'core', 'constants');
     await Directory(constantsDir).create(recursive: true);
 
@@ -698,7 +649,6 @@ export 'dialogs/confirm_dialog.dart';
     );
     logger.detail('✓ Generated app_constants.dart');
 
-    // Generate .env files
     final envPath = path.join(projectName, '.env');
     await FileUtils.writeFile(envPath, ChatbotTemplates.generateEnvFile());
     logger.detail('✓ Generated .env file');
@@ -708,7 +658,6 @@ export 'dialogs/confirm_dialog.dart';
         envExamplePath, ChatbotTemplates.generateEnvExampleFile());
     logger.detail('✓ Generated .env.example file');
 
-    // Update .gitignore
     final gitignorePath = path.join(projectName, '.gitignore');
     final gitignoreExists = await File(gitignorePath).exists();
 
@@ -730,7 +679,6 @@ export 'dialogs/confirm_dialog.dart';
   }
 
   Future<void> _generateScreens() async {
-    // Generate Splash Screen
     final splashScreenPath = path.join(
       projectName,
       'lib',
@@ -746,7 +694,6 @@ export 'dialogs/confirm_dialog.dart';
     );
     logger.detail('Generated SplashScreen at $splashScreenPath');
 
-    // Generate Onboarding Screen
     final onboardingScreenPath = path.join(
       projectName,
       'lib',
@@ -761,7 +708,6 @@ export 'dialogs/confirm_dialog.dart';
     );
     logger.detail('Generated OnboardingScreen at $onboardingScreenPath');
 
-    // Generate Home Screen
     final homeScreenPath = path.join(
       projectName,
       'lib',
@@ -781,7 +727,6 @@ export 'dialogs/confirm_dialog.dart';
     );
     logger.detail('Generated HomeScreen at $homeScreenPath');
 
-    // Generate Profile Screen
     final profileScreenPath = path.join(
       projectName,
       'lib',
@@ -797,7 +742,6 @@ export 'dialogs/confirm_dialog.dart';
     );
     logger.detail('Generated ProfileScreen at $profileScreenPath');
 
-    // Generate Auth Screens based on authType
     await _generateAuthScreens();
   }
 
@@ -1058,137 +1002,136 @@ void main() {
     }
   }
 
-  // Add this method to replace _runFlutterfireInteractive in ProjectGenerator class
-Future<void> _runFlutterfireInteractive() async {
-  try {
-    // Clear output and add visual separation
-    print('');
-    print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    print('🔥 Starting Firebase Configuration (Interactive)');
-    print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    print('');
-    
-    // Small delay to ensure output is flushed
-    await Future.delayed(Duration(milliseconds: 300));
-
-    // Run the process with inherited stdio for full interactivity
-    final process = await Process.start(
-      'flutterfire',
-      ['configure'],
-      workingDirectory: projectName,
-      mode: ProcessStartMode.inheritStdio,
-      runInShell: true,
-    );
-
-    // Wait for the process to complete
-    final exitCode = await process.exitCode;
-
-    // Add spacing after process completes
-    print('');
-    print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    
-    if (exitCode == 0) {
-      logger.success('✅ Firebase configured successfully!');
-    } else {
-      logger.warn('⚠️  Firebase configuration incomplete');
-      logger.info('You can configure manually later:');
-      logger.info('  cd $projectName');
-      logger.info('  flutterfire configure');
-    }
-    
-    print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    print('');
-    
-  } catch (e) {
-    print('');
-    logger.err('❌ Error during Firebase configuration: $e');
+  Future<void> _configureFirebase() async {
     logger.info('');
-    logger.info('To configure manually:');
-    logger.info('  cd $projectName');
-    logger.info('  flutterfire configure');
-    print('');
-  }
-}
-// Replace the _configureFirebase method with this improved version:
-// Method 2: Replace _configureFirebase
-Future<void> _configureFirebase() async {
-  logger.info('');
-  logger.info('🔥 Checking Firebase setup...');
+    logger.info('🔥 Checking Firebase setup...');
 
-  // 1️⃣ Check Firebase CLI
-  if (!await _isCommandAvailable('firebase')) {
-    logger.warn('⚠️  Firebase CLI is not installed');
-    logger.info('');
-    logger.info('To install:');
-    logger.info('  npm install -g firebase-tools');
-    logger.info('');
-    logger.info('Then configure Firebase:');
-    logger.info('  cd $projectName');
-    logger.info('  flutterfire configure');
-    return;
-  }
-
-  // 2️⃣ Check login status
-  if (!await _isFirebaseLoggedIn()) {
-    logger.warn('⚠️  Not logged into Firebase');
-    logger.info('');
-    logger.info('To login and configure:');
-    logger.info('  firebase login');
-    logger.info('  cd $projectName');
-    logger.info('  flutterfire configure');
-    return;
-  }
-
-  // 3️⃣ Check FlutterFire CLI
-  if (!await _isCommandAvailable('flutterfire')) {
-    logger.info('📦 Installing FlutterFire CLI...');
-    
-    final installProgress = logger.progress('Installing flutterfire_cli');
-    final result = await Process.run(
-      'dart',
-      ['pub', 'global', 'activate', 'flutterfire_cli'],
-      runInShell: true,
-    );
-    
-    if (result.exitCode != 0) {
-      installProgress.fail('Failed to install FlutterFire CLI');
+    // Check Firebase CLI installation
+    if (!await _isCommandAvailable('firebase')) {
+      logger.warn('⚠️  Firebase CLI is not installed');
       logger.info('');
-      logger.info('Install manually:');
-      logger.info('  dart pub global activate flutterfire_cli');
+      logger.info('Install it with:');
+      logger.info('  npm install -g firebase-tools');
+      logger.info('');
+      logger.info('Then run in your project:');
+      logger.info('  cd $projectName');
+      logger.info('  firebase login');
+      logger.info('  flutterfire configure');
+      return;
+    }
+
+    // Check if logged in
+    if (!await _isFirebaseLoggedIn()) {
+      logger.warn('⚠️  Not logged into Firebase CLI');
+      logger.info('');
+      logger.info('Login with:');
+      logger.info('  firebase login');
+      logger.info('');
+      logger.info('Then configure:');
       logger.info('  cd $projectName');
       logger.info('  flutterfire configure');
       return;
     }
-    installProgress.complete('FlutterFire CLI installed');
+
+    // Check FlutterFire CLI
+    if (!await _isCommandAvailable('flutterfire')) {
+      logger.info('📦 Installing FlutterFire CLI...');
+
+      final result = await Process.run(
+        'dart',
+        ['pub', 'global', 'activate', 'flutterfire_cli'],
+        runInShell: true,
+      );
+
+      if (result.exitCode != 0) {
+        logger.warn('⚠️  Failed to install FlutterFire CLI');
+        logger.info('Install manually:');
+        logger.info('  dart pub global activate flutterfire_cli');
+        return;
+      }
+      logger.success('✓ FlutterFire CLI installed');
+    }
+
+    // Ask user if they want to configure interactively
+    logger.info('');
+    logger.info('⚠️  Firebase configuration is interactive and requires:');
+    logger.info('   • Selecting or creating a Firebase project');
+    logger.info('   • Choosing platforms (iOS, Android, Web)');
+    logger.info('   • Configuring Firebase options');
+    logger.info('');
+
+    // Add helpful tips
+    logger.info('💡 Tips:');
+    logger.info(
+        '   • Use an existing project or create one in Firebase Console first');
+    logger.info('   • Project IDs must be unique across all Firebase');
+    logger.info('   • Visit console.firebase.google.com to manage projects');
+    logger.info('');
+
+    final confirm = logger.confirm(
+      '🚀 Run flutterfire configure now?',
+      defaultValue: true,
+    );
+
+    if (!confirm) {
+      logger.info('');
+      logger.info('⏭️  Skipped Firebase configuration');
+      logger.info('Configure later with:');
+      logger.info('  cd $projectName');
+      logger.info('  flutterfire configure');
+      return;
+    }
+
+    // Run interactive configuration
+    await _runFlutterfireInteractive();
   }
 
-  // 4️⃣ Ask user if they want to configure now
-  logger.info('');
-  logger.info('⚠️  FlutterFire configuration is interactive and requires:');
-  logger.info('   • Selecting a Firebase project');
-  logger.info('   • Choosing platforms (iOS, Android, etc.)');
-  logger.info('   • Configuring Firebase options');
-  logger.info('');
+  Future<void> _runFlutterfireInteractive() async {
+    try {
+      logger.info('');
+      logger.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      logger.info('🔥 Starting Firebase Configuration');
+      logger.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      logger.info('');
 
-  final confirm = logger.confirm(
-    '🚀 Run flutterfire configure now?',
-    defaultValue: true,
-  );
+      await Future.delayed(Duration(milliseconds: 300));
 
-  if (!confirm) {
-    logger.info('');
-    logger.info('⏭️  Skipped Firebase configuration');
-    logger.info('To configure later:');
-    logger.info('  cd $projectName');
-    logger.info('  flutterfire configure');
-    logger.info('');
-    return;
+      final process = await Process.start(
+        'flutterfire',
+        ['configure'],
+        workingDirectory: projectName,
+        mode: ProcessStartMode.inheritStdio,
+        runInShell: true,
+      );
+
+      final exitCode = await process.exitCode;
+
+      logger.info('');
+      logger.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      if (exitCode == 0) {
+        logger.success('✅ Firebase configured successfully!');
+      } else {
+        logger.warn('[WARN] ⚠️  Firebase configuration incomplete');
+        logger.info('You can configure manually later:');
+        logger.info('  cd $projectName');
+        logger.info('  flutterfire configure');
+      }
+
+      logger.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      logger.info('');
+    } catch (e) {
+      logger.info('');
+      logger.err('[ERROR] Firebase configuration failed: $e');
+      logger.info('');
+      logger.info('To configure manually:');
+      logger.info('  cd $projectName');
+      logger.info('  flutterfire configure');
+      logger.info('');
+    }
   }
 
-  // 5️⃣ Run the interactive configuration
-  await _runFlutterfireInteractive();
-}
-  // Helper method to check if a command is available
+// Helper methods
   Future<bool> _isCommandAvailable(String command) async {
     try {
       if (Platform.isWindows) {
@@ -1203,12 +1146,11 @@ Future<void> _configureFirebase() async {
     }
   }
 
-  // Helper method to check if user is logged into Firebase
   Future<bool> _isFirebaseLoggedIn() async {
     try {
       final result = await Process.run(
         'firebase',
-        ['projects:list'],
+        ['projects:list', '--json'],
         runInShell: true,
       );
       return result.exitCode == 0;

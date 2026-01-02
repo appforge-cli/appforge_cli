@@ -1,7 +1,7 @@
 import 'package:args/command_runner.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:superapp_cli/generators/project_generator.dart';
-
+import 'dart:io';
 class CreateCommand extends Command<int> {
   CreateCommand({required this.logger}) {
     argParser
@@ -389,6 +389,18 @@ class CreateCommand extends Command<int> {
             '🤖 AI Chatbot: ${includeChatbot ? 'Enabled (Gemini)' : 'Disabled'}')
         ..success('🔥 Firebase: ${includeFirebase ? 'Enabled' : 'Disabled'}')
         ..success('🌍 Languages: ${selectedLanguages.join(', ')}');
+
+      // Warn if Firebase is enabled and non-interactive, but flutterfire configure is required
+      if (includeFirebase == true) {
+        logger
+          ..info('')
+          ..warn('⚠️  Firebase requires manual configuration.')
+          ..info(
+              '   Please run the following command in your project directory:')
+          ..info('     flutterfire configure')
+          ..info(
+              '   This command is interactive and must be completed before running your app.');
+      }
 
       if (includeWeb) {
         logger.success('🌐 Flutter Web: Enabled');
