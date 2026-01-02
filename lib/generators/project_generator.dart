@@ -761,7 +761,11 @@ export 'dialogs/confirm_dialog.dart';
     await Directory(path.dirname(homeScreenPath)).create(recursive: true);
     await FileUtils.writeFile(
       homeScreenPath,
-      ScreenTemplates.generateHomeScreen(projectName),
+      ScreenTemplates.generateHomeScreen(
+        projectName,
+        includeLocalization: selectedLanguages.length > 1,
+        includeChatbot: includeChatbot,
+      ),
     );
     logger.detail('Generated HomeScreen at $homeScreenPath');
 

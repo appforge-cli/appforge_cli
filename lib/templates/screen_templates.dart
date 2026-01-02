@@ -154,7 +154,151 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   /// Generates a responsive home screen with enhanced widgets
-  static String generateHomeScreen(String projectName) {
+  static String generateHomeScreen(
+    String projectName, {
+    bool includeLocalization = true,
+    bool includeChatbot = false,
+  }) {
+    final localizationImports = includeLocalization
+        ? '''
+import 'package:provider/provider.dart' as provider_pkg;
+import '../../../core/providers/locale_provider.dart';
+import '../../../l10n/app_localizations.dart';'''
+        : '';
+
+    final chatbotImports = includeChatbot
+        ? "import '../../chatbot/screens/chatbot_screen.dart';"
+        : '';
+
+    final localizationButton = includeLocalization
+        ? '''
+      PopupMenuButton<Locale>(
+            tooltip: 'Select Language',
+            icon: Row(
+              children: [
+                const Icon(Icons.language),
+                const SizedBox(width: 6),
+                Text(_nativeLanguageName(
+                  provider_pkg.Provider.of<LocaleProvider>(context, listen: false)
+                      .locale
+                      .languageCode,
+                )),
+              ],
+            ),
+            itemBuilder: (context) {
+              return AppLocalizations.supportedLocales.map((loc) {
+                final name = _nativeLanguageName(loc.languageCode);
+                return PopupMenuItem<Locale>(
+                  value: loc,
+                  child: Row(
+                    children: [
+                      if (loc.languageCode ==
+                          provider_pkg.Provider.of<LocaleProvider>(context, listen: false)
+                              .locale
+                              .languageCode)
+                        const Icon(Icons.check, size: 18)
+                      else
+                        const SizedBox(width: 18),
+                      const SizedBox(width: 8),
+                      Text(name),
+                    ],
+                  ),
+                );
+              }).toList();
+            },
+            onSelected: (loc) {
+              provider_pkg.Provider.of<LocaleProvider>(context, listen: false).setLocale(loc);
+            },
+          ), '''
+        : '';
+
+    final chatbotHelperFunction = includeChatbot
+        ? '''
+  void _openChatbot() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ChatbotScreen(),
+      ),
+    );
+  }'''
+        : '';
+
+    final chatbotUI = includeChatbot
+        ? '''
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    sliver: SliverToBoxAdapter(
+                      child: Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 2,
+                        child: InkWell(
+                          onTap: _openChatbot,
+                          borderRadius: BorderRadius.circular(16),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.purple.shade400,
+                                        Colors.blue.shade400,
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    Icons.chat_bubble_outline,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Chat with AI',
+                                        style: theme.textTheme.titleMedium
+                                            ?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Ask questions and get instant answers',
+                                        style:
+                                            theme.textTheme.bodySmall?.copyWith(
+                                          color: theme.colorScheme.onSurface
+                                              .withOpacity(0.6),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 16,
+                                  color: theme.colorScheme.onSurface
+                                      .withOpacity(0.4),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+'''
+        : '';
+
     return '''
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -164,11 +308,8 @@ import '../../../core/services/feature_service.dart';
 import '../../../core/modules/camera/camera_service.dart';
 import '../../../core/modules/call/call_service.dart';
 import '../../../core/modules/contacts/phone_contacts_service.dart';
-import '../../../core/modules/contacts/contact.dart';
-import 'package:provider/provider.dart' as provider_pkg;
-import '../../../core/providers/locale_provider.dart';
-import '../../../l10n/app_localizations.dart';
-import '../../chatbot/screens/chatbot_screen.dart';
+import '../../../core/modules/contacts/contact.dart';$localizationImports
+$chatbotImports
 
 
 // TODO: Add native language names to each language file
@@ -219,44 +360,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: CustomAppBar(
         title: 'Demo Page',
         actions: [
-          PopupMenuButton<Locale>(
-            tooltip: 'Select Language',
-            icon: Row(
-              children: [
-                const Icon(Icons.language),
-                const SizedBox(width: 6),
-                Text(_nativeLanguageName(
-                  provider_pkg.Provider.of<LocaleProvider>(context, listen: false)
-                      .locale
-                      .languageCode,
-                )),
-              ],
-            ),
-            itemBuilder: (context) {
-              return AppLocalizations.supportedLocales.map((loc) {
-                final name = _nativeLanguageName(loc.languageCode);
-                return PopupMenuItem<Locale>(
-                  value: loc,
-                  child: Row(
-                    children: [
-                      if (loc.languageCode ==
-                          provider_pkg.Provider.of<LocaleProvider>(context, listen: false)
-                              .locale
-                              .languageCode)
-                        const Icon(Icons.check, size: 18)
-                      else
-                        const SizedBox(width: 18),
-                      const SizedBox(width: 8),
-                      Text(name),
-                    ],
-                  ),
-                );
-              }).toList();
-            },
-            onSelected: (loc) {
-              provider_pkg.Provider.of<LocaleProvider>(context, listen: false).setLocale(loc);
-            },
-          ),
+          $localizationButton
           const SizedBox(width: 4),
         ],
       ),
@@ -583,76 +687,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SliverToBoxAdapter(child: SizedBox(height: 16)),
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    sliver: SliverToBoxAdapter(
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 2,
-                        child: InkWell(
-                          onTap: _openChatbot,
-                          borderRadius: BorderRadius.circular(16),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.purple.shade400,
-                                        Colors.blue.shade400,
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Icon(
-                                    Icons.chat_bubble_outline,
-                                    color: Colors.white,
-                                    size: 24,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Chat with AI',
-                                        style: theme.textTheme.titleMedium
-                                            ?.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Ask questions and get instant answers',
-                                        style:
-                                            theme.textTheme.bodySmall?.copyWith(
-                                          color: theme.colorScheme.onSurface
-                                              .withOpacity(0.6),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.arrow_forward_ios,
-                                  size: 16,
-                                  color: theme.colorScheme.onSurface
-                                      .withOpacity(0.4),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+$chatbotUI
                   const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
                   const SliverToBoxAdapter(child: SizedBox(height: 100)),
@@ -1063,15 +1098,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-    void _openChatbot() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const ChatbotScreen(),
-      ),
-    );
-  }
+  $chatbotHelperFunction
 }
 ''';
   }
