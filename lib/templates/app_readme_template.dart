@@ -545,7 +545,8 @@ If you find this helpful, please give it a ⭐ on GitHub!
     final features = <String>[];
 
     if (modules.contains('camera')) {
-      features.add('- 📸 **Camera Module**: Photo/video capture, gallery picker');
+      features
+          .add('- 📸 **Camera Module**: Photo/video capture, gallery picker');
     }
     if (modules.contains('speech')) {
       features.add(
