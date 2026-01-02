@@ -1,6 +1,6 @@
 ## 0.1.0
 
-- Initial release of SuperApp CLI
+- Initial release of AppForge CLI
 - Interactive Flutter project generator
 - Firebase setup via flutterfire
 - Authentication scaffolding

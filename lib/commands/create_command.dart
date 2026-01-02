@@ -2,7 +2,7 @@
 
 import 'package:args/command_runner.dart';
 import 'package:mason_logger/mason_logger.dart';
-import 'package:flutter_forge/generators/project_generator.dart';
+import 'package:appforge_cli/generators/project_generator.dart';
 import 'dart:io';
 
 class CreateCommand extends Command<int> {

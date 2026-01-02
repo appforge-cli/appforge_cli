@@ -1,4 +1,4 @@
-# Development Environment — SuperApp CLI / Generated Apps
+# Development Environment — AppForge CLI / Generated Apps
 
 This file documents the pinned toolchain that all contributors and CI should use
 to avoid compatibility problems.

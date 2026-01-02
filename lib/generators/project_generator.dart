@@ -2,26 +2,26 @@ import 'dart:io';
 import 'package:mason_logger/mason_logger.dart';
 
 import 'package:path/path.dart' as path;
-import 'package:flutter_forge/templates/EnhancedWidgetsPart2.dart';
-import 'package:flutter_forge/templates/EnhancedWidgetsTemplate.dart';
-import 'package:flutter_forge/templates/app_localization_template.dart';
-import 'package:flutter_forge/templates/app_router_template.dart';
-import 'package:flutter_forge/templates/native_permissions.dart'
+import 'package:appforge_cli/templates/EnhancedWidgetsPart2.dart';
+import 'package:appforge_cli/templates/EnhancedWidgetsTemplate.dart';
+import 'package:appforge_cli/templates/app_localization_template.dart';
+import 'package:appforge_cli/templates/app_router_template.dart';
+import 'package:appforge_cli/templates/native_permissions.dart'
     show NativePermissions;
-import 'package:flutter_forge/templates/onboarding_template.dart';
-import 'package:flutter_forge/templates/chatbot_templates.dart'
+import 'package:appforge_cli/templates/onboarding_template.dart';
+import 'package:appforge_cli/templates/chatbot_templates.dart'
     show ChatbotTemplates;
-import 'package:flutter_forge/templates/docker_templates.dart'
+import 'package:appforge_cli/templates/docker_templates.dart'
     show DockerTemplates;
-import 'package:flutter_forge/templates/firebase_operations_template.dart';
-import 'package:flutter_forge/templates/main_template.dart';
-import 'package:flutter_forge/templates/modules_template.dart'
+import 'package:appforge_cli/templates/firebase_operations_template.dart';
+import 'package:appforge_cli/templates/main_template.dart';
+import 'package:appforge_cli/templates/modules_template.dart'
     show ModulesTemplate;
-import 'package:flutter_forge/templates/pubspec_template.dart';
-import 'package:flutter_forge/templates/theme_template.dart';
-import 'package:flutter_forge/templates/screen_templates.dart';
-import 'package:flutter_forge/utils/file_utils.dart';
-import 'package:flutter_forge/templates/app_readme_template.dart';
+import 'package:appforge_cli/templates/pubspec_template.dart';
+import 'package:appforge_cli/templates/theme_template.dart';
+import 'package:appforge_cli/templates/screen_templates.dart';
+import 'package:appforge_cli/utils/file_utils.dart';
+import 'package:appforge_cli/templates/app_readme_template.dart';
 
 typedef VoidCallBack = void Function();
 
@@ -407,7 +407,7 @@ dependencies {
 
     // Prevent Kotlin incremental cache crashes on Windows
     const fixes = '''
-# Added by SuperApp CLI for Windows & Kotlin stability
+# Added by AppForge CLI for Windows & Kotlin stability
 kotlin.incremental=false
 kotlin.incremental.useClasspathSnapshot=false
 org.gradle.caching=false

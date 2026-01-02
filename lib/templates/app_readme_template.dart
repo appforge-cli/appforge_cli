@@ -20,7 +20,7 @@ class AppReadmeTemplate {
     return '''
 # 🚀 $formattedProjectName
 
-A production-ready Flutter mobile application generated using **SuperApp CLI**.
+A production-ready Flutter mobile application generated using **AppForge CLI**.
 
 This project follows clean architecture, modern Flutter best practices, and comes with pre-configured authentication, theming, routing${firebaseModules.isNotEmpty ? ', and Firebase integration' : ''}.
 
@@ -426,16 +426,16 @@ ${firebaseModules.isNotEmpty ? '''### Firebase Issues
 
 ## 📄 License
 
-This project is generated using SuperApp CLI and is free to modify and distribute.
+This project is generated using AppForge CLI and is free to modify and distribute.
 
 ---
 
 ## 🙌 Generated Using
 
-**SuperApp CLI** - Production-ready Flutter App Generator
+**AppForge CLI** - Production-ready Flutter App Generator
 
-- 📦 [pub.dev/packages/flutter_forge](https://pub.dev/packages/flutter_forge)
-- 🌟 [GitHub Repository](https://github.com/yourusername/flutter_forge)
+- 📦 [pub.dev/packages/appforge_cli](https://pub.dev/packages/appforge_cli)
+- 🌟 [GitHub Repository](https://github.com/yourusername/appforge_cli)
 
 ### Features
 ✅ Clean Architecture  

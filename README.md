@@ -1,4 +1,4 @@
-# 🚀 SuperApp CLI
+# 🚀 AppForge CLI
 
 A powerful command-line tool to generate production-ready Flutter applications with pre-configured architecture, authentication, theming, and Firebase integration.
 
@@ -61,13 +61,13 @@ A powerful command-line tool to generate production-ready Flutter applications w
 
 ### Install from pub.dev
 ```bash
-dart pub global activate flutter_forge
+dart pub global activate appforge_cli
 ```
 
 ### Or install from source
 ```bash
-git clone https://github.com/yourusername/flutter_forge.git
-cd flutter_forge
+git clone https://github.com/yourusername/appforge_cli.git
+cd appforge_cli
 dart pub get
 dart pub global activate --source path .
 ```
@@ -76,7 +76,7 @@ dart pub global activate --source path .
 
 ### Interactive Mode
 ```bash
-superapp create
+appforge create
 ```
 
 Follow the prompts to configure your app:
@@ -88,7 +88,7 @@ Follow the prompts to configure your app:
 
 ### Non-Interactive Mode
 ```bash
-superapp create \
+appforge create \
   --name my_awesome_app \
   --org com.mycompany \
   --state riverpod \
@@ -99,10 +99,10 @@ superapp create \
 ### With Flags
 ```bash
 # Short flags
-superapp create -n my_app -s bloc -t coffee -f
+appforge create -n my_app -s bloc -t coffee -f
 
 # Full options
-superapp create \
+appforge create \
   --name my_app \
   --org com.example \
   --state provider \
@@ -115,7 +115,7 @@ superapp create \
 
 ### Example 1: E-commerce App with Firebase
 ```bash
-superapp create
+appforge create
 
 # Selections:
 # Name: shop_app
@@ -149,14 +149,14 @@ shop_app/
 
 ### Example 2: Social Media App
 ```bash
-superapp create -n social_app -s bloc -t purple
+appforge create -n social_app -s bloc -t purple
 # Auth: all (email, username, phone, social)
 # Firebase: Yes (all modules)
 ```
 
 ### Example 3: Simple Utility App
 ```bash
-superapp create -n util_app -s provider -t green
+appforge create -n util_app -s provider -t green
 # Auth: email_password
 # Firebase: No
 ```

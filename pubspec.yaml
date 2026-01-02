@@ -1,9 +1,9 @@
-name: flutter_forge
+name: appforge_cli
 description: A powerful CLI to generate production-ready Flutter apps with Firebase, localization, Docker, and modular architecture.
 version: 0.1.0
-homepage: https://github.com/ajaychikshetty/flutter_forge
-repository: https://github.com/ajaychikshetty/flutter_forge
-issue_tracker: https://github.com/ajaychikshetty/flutter_forge/issues/
+homepage: https://github.com/ajaychikshetty/appforge_cli
+repository: https://github.com/ajaychikshetty/appforge_cli
+issue_tracker: https://github.com/ajaychikshetty/appforge_cli/issues/
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -20,7 +20,7 @@ dependencies:
 dev_dependencies:
   lints: ^2.1.1
   test: ^1.24.0
-  
+
 executables:
-  flutterforge: flutter_forge
+  appforge: appforge_cli
 

@@ -1,4 +1,4 @@
-import 'package:flutter_forge/templates/auth_template.dart';
+import 'package:appforge_cli/templates/auth_template.dart';
 
 class ScreenTemplates {
   /// Generates a splash screen
