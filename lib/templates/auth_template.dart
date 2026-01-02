@@ -938,6 +938,7 @@ class _LoginScreenState extends State<LoginScreen> {
 ''';
   }
 }
+
 // UNIFIED AUTH (ALL METHODS)
 class UnifiedAuthTemplates {
   static String generateUnifiedLogin(String projectName) {

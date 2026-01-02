@@ -4,7 +4,7 @@ import 'package:path/path.dart' as path;
 class FileUtils {
   static Future<void> writeFile(String filePath, String content) async {
     final file = File(filePath);
-    
+
     // Create parent directory if it doesn't exist
     final directory = file.parent;
     if (!await directory.exists()) {
@@ -23,7 +23,8 @@ class FileUtils {
     return await File(filePath).exists();
   }
 
-  static Future<void> copyDirectory(Directory source, Directory destination) async {
+  static Future<void> copyDirectory(
+      Directory source, Directory destination) async {
     await destination.create(recursive: true);
 
     await for (final entity in source.list(recursive: false)) {

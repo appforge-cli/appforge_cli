@@ -3,6 +3,7 @@ description: A powerful CLI to generate production-ready Flutter apps with Fireb
 version: 0.1.0
 homepage: https://github.com/ajaychikshetty/superapp_cli
 repository: https://github.com/ajaychikshetty/superapp_cli
+issues_tracker: https://github.com/ajaychikshetty/superapp_cli/issues/
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

@@ -3,7 +3,7 @@ class AppRouterTemplate {
     final chatbotImport = includeChatbot
         ? "import '../../features/chatbot/screens/chatbot_screen.dart';"
         : '';
-    
+
     final chatbotRoute = includeChatbot
         ? '''
         GoRoute(

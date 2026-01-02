@@ -2,7 +2,7 @@ class ThemeTemplate {
   /// Generates a complete theme configuration file with light and dark modes
   static String generate(String themeColor) {
     final colorData = _getThemeColors(themeColor);
-    
+
     return '''
 import 'package:flutter/material.dart';
 

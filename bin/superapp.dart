@@ -1,4 +1,5 @@
 #!/usr/bin/env dart
+
 import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:superapp_cli/commands/create_command.dart';
@@ -6,7 +7,7 @@ import 'package:mason_logger/mason_logger.dart';
 
 void main(List<String> arguments) async {
   final logger = Logger();
-  
+
   final runner = CommandRunner<int>(
     'superapp',
     'Generate production-ready Flutter apps instantly',
@@ -21,7 +22,7 @@ void main(List<String> arguments) async {
 
   try {
     final results = runner.parse(arguments);
-    
+
     if (results['version'] == true) {
       logger.info('superapp_cli version: 1.0.0');
       exit(0);

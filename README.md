@@ -442,5 +442,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Contact
 
-- GitHub: [@ajaychikshetty](https://github.com/ajaychikshetty)
-- Email: ajaychikshetty123@gmail.com
+- Ajay Chikshetty — GitHub: https://github.com/ajaychikshetty | LinkedIn: https://www.linkedin.com/in/ajaychikshetty
+- Saksham Sharma — GitHub: https://github.com/SakshamVK | LinkedIn: https://www.linkedin.com/in/sakshamvinodkhare/
