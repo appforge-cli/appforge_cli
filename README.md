@@ -61,13 +61,13 @@ A powerful command-line tool to generate production-ready Flutter applications w
 
 ### Install from pub.dev
 ```bash
-dart pub global activate superapp_cli
+dart pub global activate flutter_forge
 ```
 
 ### Or install from source
 ```bash
-git clone https://github.com/yourusername/superapp_cli.git
-cd superapp_cli
+git clone https://github.com/yourusername/flutter_forge.git
+cd flutter_forge
 dart pub get
 dart pub global activate --source path .
 ```

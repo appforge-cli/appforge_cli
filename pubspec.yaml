@@ -1,9 +1,9 @@
-name: superapp_cli
+name: flutter_forge
 description: A powerful CLI to generate production-ready Flutter apps with Firebase, localization, Docker, and modular architecture.
 version: 0.1.0
-homepage: https://github.com/ajaychikshetty/superapp_cli
-repository: https://github.com/ajaychikshetty/superapp_cli
-issue_tracker: https://github.com/ajaychikshetty/superapp_cli/issues/
+homepage: https://github.com/ajaychikshetty/flutter_forge
+repository: https://github.com/ajaychikshetty/flutter_forge
+issue_tracker: https://github.com/ajaychikshetty/flutter_forge/issues/
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

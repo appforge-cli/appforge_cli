@@ -434,8 +434,8 @@ This project is generated using SuperApp CLI and is free to modify and distribut
 
 **SuperApp CLI** - Production-ready Flutter App Generator
 
-- 📦 [pub.dev/packages/superapp_cli](https://pub.dev/packages/superapp_cli)
-- 🌟 [GitHub Repository](https://github.com/yourusername/superapp_cli)
+- 📦 [pub.dev/packages/flutter_forge](https://pub.dev/packages/flutter_forge)
+- 🌟 [GitHub Repository](https://github.com/yourusername/flutter_forge)
 
 ### Features
 ✅ Clean Architecture  

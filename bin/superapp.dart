@@ -2,7 +2,7 @@
 
 import 'dart:io';
 import 'package:args/command_runner.dart';
-import 'package:superapp_cli/commands/create_command.dart';
+import 'package:flutter_forge/commands/create_command.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 void main(List<String> arguments) async {
@@ -24,7 +24,7 @@ void main(List<String> arguments) async {
     final results = runner.parse(arguments);
 
     if (results['version'] == true) {
-      logger.info('superapp_cli version: 1.0.0');
+      logger.info('flutter_forge version: 1.0.0');
       exit(0);
     }
 
