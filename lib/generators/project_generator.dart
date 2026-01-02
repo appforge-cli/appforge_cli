@@ -20,6 +20,7 @@ import 'package:superapp_cli/templates/pubspec_template.dart';
 import 'package:superapp_cli/templates/theme_template.dart';
 import 'package:superapp_cli/templates/screen_templates.dart';
 import 'package:superapp_cli/utils/file_utils.dart';
+import 'package:superapp_cli/templates/app_readme_template.dart';
 
 class ProjectGenerator {
   ProjectGenerator({
@@ -122,6 +123,8 @@ class ProjectGenerator {
       if (selectedLanguages.isNotEmpty && selectedLanguages.length > 1) {
         await _generateLocalization();
       }
+       // Step 16: Generate README.md
+      await _generateReadme();
 
       // Complete the progress before Firebase config
       progress.complete('Project created successfully!');
@@ -491,7 +494,23 @@ org.gradle.daemon=true
 
     logger.success('✨ Utility modules generated successfully!');
   }
-
+Future<void> _generateReadme() async {
+    final readmePath = path.join(projectName, 'README.md');
+    final content = AppReadmeTemplate.generate(
+      projectName: projectName,
+      stateManagement: stateManagement,
+      authType: authType,
+      firebaseModules: firebaseModules,
+      selectedModules: selectedModules,
+      selectedLanguages: selectedLanguages,
+      includeChatbot: includeChatbot,
+      includeWeb: includeWeb,
+      includeDocker: includeDocker,
+    );
+    
+    await FileUtils.writeFile(readmePath, content);
+    logger.detail('✓ Generated README.md');
+  }
   Future<void> _generateModulesBarrelFile(
       String modulesRoot, List<String> selectedModules) async {
     final barrelContent = StringBuffer('''
