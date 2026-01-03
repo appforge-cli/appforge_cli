@@ -1,4 +1,4 @@
-## 0.1.0
+## 0.1.1
 
 - Initial release of AppForge CLI
 - Interactive Flutter project generator

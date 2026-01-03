@@ -66,7 +66,7 @@ dart pub global activate appforge_cli
 
 ### Or install from source
 ```bash
-git clone https://github.com/yourusername/appforge_cli.git
+git clone https://github.com/ajaychikshetty/appforge_cli.git
 cd appforge_cli
 dart pub get
 dart pub global activate --source path .

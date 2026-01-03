@@ -435,7 +435,7 @@ This project is generated using AppForge CLI and is free to modify and distribut
 **AppForge CLI** - Production-ready Flutter App Generator
 
 - 📦 [pub.dev/packages/appforge_cli](https://pub.dev/packages/appforge_cli)
-- 🌟 [GitHub Repository](https://github.com/yourusername/appforge_cli)
+- 🌟 [GitHub Repository](https://github.com/ajaychikshetty/appforge_cli)
 
 ### Features
 ✅ Clean Architecture  
