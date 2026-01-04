@@ -11,7 +11,7 @@ class MainTemplate {
     final firebaseImports = includeFirebase
         ? '''
 import 'package:firebase_core/firebase_core.dart';
-// import 'firebase_options.dart';
+import 'firebase_options.dart';
 '''
         : '';
 
@@ -32,9 +32,9 @@ import 'package:$projectName/core/providers/locale_provider.dart';
     // --- Firebase init code in main() ---
     final firebaseInit = includeFirebase
         ? '''
-  // await Firebase.initializeApp(
-  //   options: DefaultFirebaseOptions.currentPlatform,
-  // );
+await Firebase.initializeApp(
+options: DefaultFirebaseOptions.currentPlatform,
+);
 '''
         : '';
 

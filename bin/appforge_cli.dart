@@ -6,6 +6,7 @@ import 'package:appforge_cli/commands/create_command.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 void main(List<String> arguments) async {
+  // CLI entrypoint
   final logger = Logger();
 
   final runner = CommandRunner<int>(

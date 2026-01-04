@@ -9,13 +9,25 @@ issue_tracker: https://github.com/ajaychikshetty/appforge_cli/issues/
 environment:
   sdk: '>=3.0.0 <4.0.0'
 
+topics:
+  - cli
+  - flutter
+  - generator
+  - firebase
+  - docker
+  - scaffold
+  
+documentation: https://github.com/ajaychikshetty/appforge_cli#readme
+
 dependencies:
   args: ^2.4.2
   path: ^1.8.3
   recase: ^4.1.0
   yaml: ^3.1.2
   interact: ^2.2.0
-  mason_logger: ^0.2.11
+  mason_logger: ^0.3.3
+  watcher: ^1.2.0
+  meta: ^1.17.0
   http: ^1.1.0
 
 dev_dependencies:
@@ -24,4 +36,3 @@ dev_dependencies:
 
 executables:
   appforge: appforge_cli
-

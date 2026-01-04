@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:mason_logger/mason_logger.dart';
 
 import 'package:path/path.dart' as path;
-import 'package:appforge_cli/templates/EnhancedWidgetsPart2.dart';
-import 'package:appforge_cli/templates/EnhancedWidgetsTemplate.dart';
+import 'package:appforge_cli/templates/enhanced_widgets_part2.dart';
+import 'package:appforge_cli/templates/enhanced_widgets_template.dart';
 import 'package:appforge_cli/templates/app_localization_template.dart';
 import 'package:appforge_cli/templates/app_router_template.dart';
 import 'package:appforge_cli/templates/native_permissions.dart'
@@ -25,6 +25,40 @@ import 'package:appforge_cli/templates/app_readme_template.dart';
 
 typedef VoidCallBack = void Function();
 
+/// A powerful Flutter project generator that creates production-ready apps
+/// with configurable features including Firebase, localization, Docker, and more.
+///
+/// Example:
+/// ```dart
+/// final generator = ProjectGenerator(
+///   projectName: 'my_app',
+///   organization: 'com.example',
+///   stateManagement: 'provider',
+///   includeFirebase: true,
+///   logger: logger,
+/// );
+/// await generator.generate();
+/// ```
+/// 
+/// Creates a new [ProjectGenerator] with the specified configuration.
+///
+/// Required parameters:
+/// * [projectName] - The name of the Flutter project (snake_case recommended)
+/// * [organization] - The organization identifier (e.g., com.example)
+/// * [stateManagement] - State management solution ('provider', 'bloc', 'riverpod')
+/// * [includeFirebase] - Whether to include Firebase integration
+/// * [themeColor] - Primary theme color for the app
+/// * [authType] - Authentication type ('email_password', 'phone_otp', 'social_auth', 'all')
+/// * [logger] - Logger instance for output
+///
+/// Optional parameters:
+/// * [firebaseModules] - List of Firebase modules to include (auth, firestore, storage, etc.)
+/// * [includeChatbot] - Include AI chatbot feature
+/// * [includeDocker] - Generate Docker configuration for web deployment
+/// * [selectedModules] - Utility modules to include (camera, speech, recorder, call)
+/// * [enabledFeatures] - Additional features to enable
+/// * [selectedLanguages] - Languages for localization (defaults to ['en'])
+/// * [includeWeb] - Enable Flutter Web support
 class ProjectGenerator {
   ProjectGenerator({
     required this.projectName,
@@ -46,20 +80,57 @@ class ProjectGenerator {
                 ? const ['en']
                 : selectedLanguages;
 
+/// List of additional features to enable in the project.
   final List<String> enabledFeatures;
-  final String projectName;
-  final String organization;
-  final String stateManagement;
-  final bool includeFirebase;
-  final List<String> firebaseModules;
-  final bool includeChatbot;
-  final bool includeDocker;
+/// Whether to include Flutter Web support.
   final bool includeWeb;
-  final List<String> selectedLanguages;
-  final String themeColor;
-  final String authType;
-  final Logger logger;
-  final List<String> selectedModules;
+/// The name of the Flutter project being generated.
+final String projectName;
+
+/// The organization identifier in reverse domain notation (e.g., com.example).
+final String organization;
+
+/// The state management solution to use ('provider', 'bloc', 'riverpod').
+final String stateManagement;
+
+/// Whether to include Firebase integration in the project.
+final bool includeFirebase;
+
+/// List of Firebase modules to include (e.g., 'auth', 'firestore', 'storage').
+final List<String> firebaseModules;
+
+/// Whether to include an AI chatbot feature with BLoC state management.
+final bool includeChatbot;
+
+/// Whether to generate Docker configuration for web deployment.
+final bool includeDocker;
+
+/// List of utility modules to include (e.g., 'camera', 'speech', 'recorder', 'call').
+final List<String> selectedModules;
+
+/// Languages to support for localization (ISO 639-1 codes).
+final List<String> selectedLanguages;
+
+/// Primary theme color for the generated app.
+final String themeColor;
+
+/// Authentication type ('email_password', 'username_password', 'phone_otp', 'social_auth', 'all').
+final String authType;
+
+/// Logger instance for output during generation.
+final Logger logger;
+  /// Generates the complete Flutter project with all configured features.
+  ///
+  /// This method orchestrates the entire project generation process including:
+  /// - Creating the Flutter project structure
+  /// - Generating screens and routing
+  /// - Configuring Firebase (if enabled)
+  /// - Setting up Docker (if web + docker enabled)
+  /// - Generating localization files (if multiple languages selected)
+  ///
+  /// [onBeforeFirebase] - Optional callback executed before Firebase configuration
+  ///
+  /// Throws [Exception] if project creation fails.
 
   Future<void> generate({VoidCallBack? onBeforeFirebase}) async {
     final progress = logger.progress('Creating Flutter app: $projectName');
@@ -149,7 +220,16 @@ class ProjectGenerator {
     }
   }
 
-  // Add this method to prompt for modules
+  /// Prompts the user to select utility modules to include in the project.
+  ///
+  /// Available modules include:
+  /// - Camera: Photo/video capture service
+  /// - Speech: Speech-to-text and text-to-speech
+  /// - Recorder: Audio recording and playback
+  /// - Call: Phone call and VoIP service
+  /// - Contacts: Access to device contacts
+  ///
+  /// Returns a list of selected module identifiers.
   static Future<List<String>> promptForModules(Logger logger) async {
     final modules = <String>[];
     logger.info('📱 Utility Module Selection');
@@ -290,7 +370,7 @@ dependencies {
     );
 
     final file = File(manifestPath);
-    if (!await file.exists()) {
+    if (!file.existsSync()) {
       logger.warn('AndroidManifest.xml not found');
       return;
     }
@@ -343,7 +423,7 @@ dependencies {
     );
 
     final file = File(plistPath);
-    if (!await file.exists()) {
+    if (!file.existsSync()) {
       logger.warn('Info.plist not found');
       return;
     }
@@ -398,7 +478,7 @@ dependencies {
     );
 
     final file = File(gradlePropsPath);
-    if (!await file.exists()) {
+    if (!file.existsSync()) {
       logger.warn('gradle.properties not found');
       return;
     }
@@ -1165,7 +1245,7 @@ void main() {
       logger.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       logger.info('');
 
-      await Future.delayed(Duration(milliseconds: 300));
+      await Future.delayed(const Duration(milliseconds: 300));
 
       final process = await Process.start(
         'flutterfire',

@@ -1,5 +1,12 @@
 ## 0.1.1
 
+- Fixed contributor metadata and documentation details
+- Improved dependency compatibility
+- Minor internal stability improvements
+- Documentation and README refinements
+
+## 0.1.0
+
 - Initial release of AppForge CLI
 - Interactive Flutter project generator
 - Firebase setup via flutterfire

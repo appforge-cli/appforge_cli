@@ -5,6 +5,8 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:appforge_cli/generators/project_generator.dart';
 import 'dart:io';
 
+/// Creates a production-ready Flutter application
+/// with selected architecture, Firebase, and tooling.
 class CreateCommand extends Command<int> {
   CreateCommand({required this.logger}) {
     argParser
@@ -71,6 +73,7 @@ class CreateCommand extends Command<int> {
   @override
   String get name => 'create';
 
+  /// Runs the interactive project creation flow.
   @override
   Future<int> run() async {
     // Read CLI options (may be null)

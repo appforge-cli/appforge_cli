@@ -1,0 +1,16 @@
+linter:
+  rules:
+    # Documentation
+    - public_member_api_docs: false
+    
+    # Style
+    - file_names
+    - library_names
+    - library_prefixes
+    
+    # Best practices
+    - avoid_empty_else
+    - avoid_print
+    - prefer_const_constructors
+    - prefer_final_fields
+    - unnecessary_null_checks
