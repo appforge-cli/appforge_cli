@@ -39,7 +39,7 @@ typedef VoidCallBack = void Function();
 /// );
 /// await generator.generate();
 /// ```
-/// 
+///
 /// Creates a new [ProjectGenerator] with the specified configuration.
 ///
 /// Required parameters:
@@ -80,45 +80,48 @@ class ProjectGenerator {
                 ? const ['en']
                 : selectedLanguages;
 
-/// List of additional features to enable in the project.
+  /// List of additional features to enable in the project.
   final List<String> enabledFeatures;
-/// Whether to include Flutter Web support.
+
+  /// Whether to include Flutter Web support.
   final bool includeWeb;
-/// The name of the Flutter project being generated.
-final String projectName;
 
-/// The organization identifier in reverse domain notation (e.g., com.example).
-final String organization;
+  /// The name of the Flutter project being generated.
+  final String projectName;
 
-/// The state management solution to use ('provider', 'bloc', 'riverpod').
-final String stateManagement;
+  /// The organization identifier in reverse domain notation (e.g., com.example).
+  final String organization;
 
-/// Whether to include Firebase integration in the project.
-final bool includeFirebase;
+  /// The state management solution to use ('provider', 'bloc', 'riverpod').
+  final String stateManagement;
 
-/// List of Firebase modules to include (e.g., 'auth', 'firestore', 'storage').
-final List<String> firebaseModules;
+  /// Whether to include Firebase integration in the project.
+  final bool includeFirebase;
 
-/// Whether to include an AI chatbot feature with BLoC state management.
-final bool includeChatbot;
+  /// List of Firebase modules to include (e.g., 'auth', 'firestore', 'storage').
+  final List<String> firebaseModules;
 
-/// Whether to generate Docker configuration for web deployment.
-final bool includeDocker;
+  /// Whether to include an AI chatbot feature with BLoC state management.
+  final bool includeChatbot;
 
-/// List of utility modules to include (e.g., 'camera', 'speech', 'recorder', 'call').
-final List<String> selectedModules;
+  /// Whether to generate Docker configuration for web deployment.
+  final bool includeDocker;
 
-/// Languages to support for localization (ISO 639-1 codes).
-final List<String> selectedLanguages;
+  /// List of utility modules to include (e.g., 'camera', 'speech', 'recorder', 'call').
+  final List<String> selectedModules;
 
-/// Primary theme color for the generated app.
-final String themeColor;
+  /// Languages to support for localization (ISO 639-1 codes).
+  final List<String> selectedLanguages;
 
-/// Authentication type ('email_password', 'username_password', 'phone_otp', 'social_auth', 'all').
-final String authType;
+  /// Primary theme color for the generated app.
+  final String themeColor;
 
-/// Logger instance for output during generation.
-final Logger logger;
+  /// Authentication type ('email_password', 'username_password', 'phone_otp', 'social_auth', 'all').
+  final String authType;
+
+  /// Logger instance for output during generation.
+  final Logger logger;
+
   /// Generates the complete Flutter project with all configured features.
   ///
   /// This method orchestrates the entire project generation process including:
