@@ -1,39 +1,70 @@
-# appforge_cli – Example Usage
+# AppForge CLI — Example
 
-This example demonstrates how to use **appforge_cli** to generate
-a production-ready Flutter application.
+This example demonstrates how to use **AppForge CLI** to generate a
+production-ready Flutter application using an interactive command-line interface.
 
-## 📦 Install the CLI
+AppForge is a **CLI tool**, not a runtime Dart library.  
+You do **not** import it into Flutter apps — you run it from the terminal.
+
+---
+
+## 📦 Install AppForge CLI
 
 ```bash
 dart pub global activate appforge_cli
-```
+Verify installation:
 
-# Create a Flutter App
+bash
+Copy code
+appforge --version
+🚀 Create a Flutter App
+Run:
 
-```bash
+bash
+Copy code
 appforge create
-```
-You will be prompted to choose:
+You will be guided through an interactive setup where you can choose:
 
 Project name
 
-Organization ID
+Organization ID (e.g. com.example)
 
 State management (Provider / Riverpod / Bloc)
 
-Theme
+App theme
 
 Authentication type
 
-Firebase modules
+Firebase integration & modules
 
-Web & Docker support (optional)
+Flutter Web support
 
-# ℹ️ Notes
+Docker setup (for Web)
 
-Flutter SDK must be installed
+Localization (multi-language support)
 
-Firebase CLI is required for Firebase features
+Optional AI chatbot integration
 
-Works on macOS, Linux, and Windows
+🧰 Requirements
+Before running the CLI, make sure you have:
+
+Flutter SDK installed
+
+Dart SDK (comes with Flutter)
+
+Firebase CLI (required only if Firebase is enabled)
+
+bash
+Copy code
+flutter doctor
+firebase --version
+ℹ️ Notes
+The generated project is production-ready
+
+Mobile-first by default, with optional Web & Docker support
+
+Works on Windows, macOS, and Linux
+
+Programmatic usage is intended for advanced users and documented separately
+
+For full documentation, visit the package README on pub.dev.
