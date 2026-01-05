@@ -5,3 +5,9 @@ build/
 *.iml
 .idea/
 .vscode/
+
+# Created test apps
+saksg1/
+saksh1/
+saksi1/
+saksj1/
