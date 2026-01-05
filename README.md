@@ -7,11 +7,9 @@ A powerful command-line tool to generate production-ready Flutter applications w
 ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
 
 <p align="center">
-  <a href="https://youtu.be/xC8TyMydvUI">
-    <img src="appforge/background.jpg" alt="AppForge CLI Demo Video" width="800"/>
-  </a>
-  <br>
-  <em>👆 Click to watch the demo video</em>
+[![AppForge CLI Demo](https://raw.githubusercontent.com/ajaychikshetty/appforge_cli/main/appforge/background.jpg)](https://youtu.be/xC8TyMydvUI)
+
+*👆 Click to watch the demo video*
 </p>
 
 ## ✨ Features
@@ -63,10 +61,10 @@ A powerful command-line tool to generate production-ready Flutter applications w
 ## � Screenshots
 
 <p align="center">
-  <img src="appforge/image_1.jpg" alt="Screenshot 1" width="200"/>
-  <img src="appforge/image_2.jpg" alt="Screenshot 2" width="200"/>
-  <img src="appforge/image_3.jpg" alt="Screenshot 3" width="200"/>
-  <img src="appforge/image_4.jpg" alt="Screenshot 4" width="200"/>
+![Screenshot 1](https://raw.githubusercontent.com/ajaychikshetty/appforge_cli/main/appforge/image_1.jpg)
+![Screenshot 2](https://raw.githubusercontent.com/ajaychikshetty/appforge_cli/main/appforge/image_2.jpg)
+![Screenshot 3](https://raw.githubusercontent.com/ajaychikshetty/appforge_cli/main/appforge/image_3.jpg)
+![Screenshot 4](https://raw.githubusercontent.com/ajaychikshetty/appforge_cli/main/appforge/image_4.jpg)
 </p>
 
 ## �📦 Installation
