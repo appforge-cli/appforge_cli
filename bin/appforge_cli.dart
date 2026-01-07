@@ -61,7 +61,7 @@ void main(List<String> arguments) async {
 }
 
 void _printVersion(Logger logger) {
-  logger.info('appforge_cli version: 0.1.1');
+  logger.info('appforge_cli version: 0.1.2');
 }
 
 void _printWelcome(Logger logger) {
@@ -123,7 +123,7 @@ void _printAllCommands(Logger logger, CommandRunner runner) {
   final commands = '''
 ╔═══════════════════════════════════════════════════════════════╗
 ║                     APPFORGE CLI COMMANDS                     ║
-║                        Version 0.1.1                          ║
+║                        Version 0.1.2                          ║
 ╚═══════════════════════════════════════════════════════════════╝
 
 ┌───────────────────────────────────────────────────────────────┐

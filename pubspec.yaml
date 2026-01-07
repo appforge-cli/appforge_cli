@@ -1,7 +1,7 @@
 name: appforge_cli
 license: MIT
 description: A powerful CLI to generate production-ready Flutter apps with Firebase, localization, Docker, and modular architecture.
-version: 0.1.1
+version: 0.1.2
 homepage: https://github.com/appforge-cli/appforge_cli/
 repository: https://github.com/appforge-cli/appforge_cli/
 issue_tracker: https://github.com/appforge-cli/appforge_cli/issues/
