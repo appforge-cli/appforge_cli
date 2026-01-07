@@ -311,7 +311,7 @@ class CreateCommand extends Command<int> {
       'recorder',
       'call',
       'contacts',
-      'location', 
+      'location',
     ];
 
     // Show summary before proceeding
