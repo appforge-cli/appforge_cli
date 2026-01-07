@@ -159,7 +159,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     bool includeLocalization = true,
     bool includeChatbot = false,
   }) {
-    // Always include localization import, but it will be used with null-safe fallbacks
+    // Conditional localization imports
     final localizationImports = includeLocalization
         ? '''
 import 'package:provider/provider.dart' as provider_pkg;
@@ -170,6 +170,13 @@ import '../../../l10n/app_localizations.dart';'''
     final chatbotImports = includeChatbot
         ? "import '../../chatbot/screens/chatbot_screen.dart';"
         : '';
+
+    // Helper function to get localized text or fallback to default
+    String _getText(String key, String fallback) {
+      return includeLocalization
+          ? "AppLocalizations.of(context)!.$key"
+          : "'$fallback'";
+    }
 
     final localizationButton = includeLocalization
         ? '''
@@ -266,7 +273,7 @@ import '../../../l10n/app_localizations.dart';'''
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Chat with AI',
+                                        ${_getText('chatWithAI', 'Chat with AI')},
                                         style: theme.textTheme.titleMedium
                                             ?.copyWith(
                                           fontWeight: FontWeight.w600,
@@ -274,7 +281,7 @@ import '../../../l10n/app_localizations.dart';'''
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        'Ask questions and get instant answers',
+                                        ${_getText('chatDescription', 'Ask questions and get instant answers')},
                                         style:
                                             theme.textTheme.bodySmall?.copyWith(
                                           color: theme.colorScheme.onSurface
@@ -300,21 +307,9 @@ import '../../../l10n/app_localizations.dart';'''
 '''
         : '';
 
-    return '''
-import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import '../../../shared/widgets/widgets.dart';
-import '../../../core/services/feature_service.dart';
-import '../../../core/modules/camera/camera_service.dart';
-import '../../../core/modules/call/call_service.dart';
-import '../../../core/modules/contacts/phone_contacts_service.dart';
-import '../../../core/modules/contacts/contact.dart';
-import '../../../core/modules/location/location_service.dart';
-import 'package:geolocator/geolocator.dart';;$localizationImports
-$chatbotImports
-
-
+    // Only include the language name helper if localization is enabled
+    final languageHelperFunction = includeLocalization
+        ? '''
 // Helper function for native language names
 String _nativeLanguageName(String code) {
   const names = {
@@ -341,7 +336,24 @@ String _nativeLanguageName(String code) {
   return names[code] ?? code;
 }
 
+'''
+        : '';
 
+    return '''
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../../shared/widgets/widgets.dart';
+import '../../../core/services/feature_service.dart';
+import '../../../core/modules/camera/camera_service.dart';
+import '../../../core/modules/call/call_service.dart';
+import '../../../core/modules/contacts/phone_contacts_service.dart';
+import '../../../core/modules/contacts/contact.dart';
+import '../../../core/modules/location/location_service.dart';
+import 'package:geolocator/geolocator.dart';$localizationImports
+$chatbotImports
+
+$languageHelperFunction
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
@@ -353,6 +365,9 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<File> _capturedImages = [];
   final List<Contact> _savedContacts = [];
   Contact? _selectedContact;
+  final LocationService _locationService = LocationService();
+  Position? _currentPosition;
+  bool _isLoadingLocation = false;
 
   @override
   Widget build(BuildContext context) {
@@ -360,7 +375,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Test App',
+        title: \${_getText('appTitle', 'Test App')},
         actions: [
           $localizationButton
           const SizedBox(width: 4),
@@ -369,9 +384,6 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            // final isTablet = constraints.maxWidth > 600;
-            // final crossAxisCount = isTablet ? 3 : 2;
-
             return RefreshIndicator(
               onRefresh: () async {
                 await Future.delayed(const Duration(seconds: 1));
@@ -386,14 +398,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Welcome Developer!',
+                            \${_getText('welcomeMessage', 'Welcome Developer!')},
                             style: theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Start coding your app by customizing this home screen.',
+                            \${_getText('welcomeSubtitle', 'Start coding your app by customizing this home screen.')},
                             style: theme.textTheme.bodyLarge?.copyWith(
                               color:
                                   theme.colorScheme.onSurface.withOpacity(0.6),
@@ -405,14 +417,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
 
                   const SliverToBoxAdapter(child: SizedBox(height: 32)),
-                  // Camera Section (conditional based on FeatureService)
+                  // Camera Section
                   if (FeatureService.isCameraEnabled ||
                       FeatureService.isImagePickerEnabled) ...[
                     SliverPadding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       sliver: SliverToBoxAdapter(
                         child: Text(
-                          'Photo Gallery',
+                          \${_getText('photoGallery', 'Photo Gallery')},
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -430,7 +442,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: ElevatedButton.icon(
                                   onPressed: _takePhoto,
                                   icon: const Icon(Icons.camera_alt),
-                                  label: const Text('Take Photo'),
+                                  label: Text(\${_getText('takePhoto', 'Take Photo')}),
                                   style: ElevatedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 12),
@@ -445,7 +457,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: OutlinedButton.icon(
                                   onPressed: _pickFromGallery,
                                   icon: const Icon(Icons.photo_library),
-                                  label: const Text('Pick Image'),
+                                  label: Text(\${_getText('pickImage', 'Pick Image')}),
                                   style: OutlinedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 12),
@@ -466,8 +478,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             onPressed:
                                 _capturedImages.isEmpty ? null : _viewPhotos,
                             icon: const Icon(Icons.photo_album),
-                            label:
-                                Text('View Photos (\${_capturedImages.length})'),
+                            label: Text('\${\${_getText('viewPhotos', 'View Photos')}} (\${_capturedImages.length})'),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                             ),
@@ -478,13 +489,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SliverToBoxAdapter(child: SizedBox(height: 32)),
                   ],
 
-                  // Calling Section (conditional based on FeatureService)
+                  // Calling Section
                   if (FeatureService.isCallEnabled) ...[
                     SliverPadding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       sliver: SliverToBoxAdapter(
                         child: Text(
-                          'Calling',
+                          \${_getText('calling', 'Calling')},
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -522,7 +533,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Make a Call',
+                                        \${_getText('makeCall', 'Make a Call')},
                                         style: theme.textTheme.titleMedium
                                             ?.copyWith(
                                           fontWeight: FontWeight.w600,
@@ -530,7 +541,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        'Quickly dial a phone number',
+                                        \${_getText('quickDial', 'Quickly dial a phone number')},
                                         style:
                                             theme.textTheme.bodySmall?.copyWith(
                                           color: theme.colorScheme.onSurface
@@ -543,7 +554,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ElevatedButton.icon(
                                   onPressed: _startCall,
                                   icon: const Icon(Icons.call),
-                                  label: const Text('Start Call'),
+                                  label: Text(\${_getText('startCall', 'Start Call')}),
                                 ),
                               ],
                             ),
@@ -554,13 +565,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SliverToBoxAdapter(child: SizedBox(height: 32)),
                   ],
 
-                  // Contacts Section (conditional based on FeatureService)
+                  // Contacts Section
                   if (FeatureService.isContactsEnabled) ...[
                     SliverPadding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       sliver: SliverToBoxAdapter(
                         child: Text(
-                          'Contacts',
+                          \${_getText('contacts', 'Contacts')},
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -577,7 +588,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: ElevatedButton.icon(
                                 onPressed: _pickContact,
                                 icon: const Icon(Icons.person_add),
-                                label: const Text('Pick Contact'),
+                                label: Text(\${_getText('pickContact', 'Pick Contact')}),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -587,7 +598,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ? null
                                     : _viewSavedContacts,
                                 icon: const Icon(Icons.contacts),
-                                label: Text('Saved (\${_savedContacts.length})'),
+                                label: Text('\${\${_getText('saved', 'Saved')}} (\${_savedContacts.length})'),
                               ),
                             ),
                           ],
@@ -645,7 +656,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         child: ElevatedButton.icon(
                                           onPressed: _callContact,
                                           icon: const Icon(Icons.call),
-                                          label: const Text('Call'),
+                                          label: Text(\${_getText('call', 'Call')}),
                                         ),
                                       ),
                                       const SizedBox(width: 8),
@@ -653,7 +664,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         child: OutlinedButton.icon(
                                           onPressed: _copyContactNumber,
                                           icon: const Icon(Icons.copy),
-                                          label: const Text('Copy'),
+                                          label: Text(\${_getText('copy', 'Copy')}),
                                         ),
                                       ),
                                       const SizedBox(width: 8),
@@ -661,7 +672,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         child: OutlinedButton.icon(
                                           onPressed: _saveContact,
                                           icon: const Icon(Icons.bookmark_add),
-                                          label: const Text('Save'),
+                                          label: Text(\${_getText('save', 'Save')}),
                                         ),
                                       ),
                                     ],
@@ -676,13 +687,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SliverToBoxAdapter(child: SizedBox(height: 32)),
                   ],
 
-                  // Location Section (conditional based on FeatureService)
+                  // Location Section
                   if (FeatureService.isLocationEnabled) ...[
                     SliverPadding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       sliver: SliverToBoxAdapter(
                         child: Text(
-                          'Location',
+                          \${_getText('location', 'Location')},
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -723,7 +734,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Current Location',
+                                           \${_getText('currentLocation', 'Current Location')},
                                             style: theme.textTheme.titleMedium
                                                 ?.copyWith(
                                               fontWeight: FontWeight.w600,
@@ -731,7 +742,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            'Get your current GPS coordinates',
+                                            \${_getText('gpsCoordinates', 'Get your current GPS coordinates')},
                                             style: theme.textTheme.bodySmall
                                                 ?.copyWith(
                                               color: theme.colorScheme.onSurface
@@ -755,8 +766,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                             )
                                           : const Icon(Icons.my_location),
                                       label: Text(_isLoadingLocation
-                                          ? 'Loading...'
-                                          : 'Get Location'),
+                                          ? \${_getText('loading', 'Loading...')}
+                                          : \${_getText('getLocation', 'Get Location')}),
                                     ),
                                   ],
                                 ),
@@ -770,7 +781,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         child: _buildLocationInfoTile(
                                           context,
                                           icon: Icons.north,
-                                          label: 'Latitude',
+                                          label: \${_getText('latitude', 'Latitude')},
                                           value: _currentPosition!.latitude
                                               .toStringAsFixed(6),
                                         ),
@@ -780,7 +791,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         child: _buildLocationInfoTile(
                                           context,
                                           icon: Icons.east,
-                                          label: 'Longitude',
+                                          label: \${_getText('longitude', 'Longitude')},
                                           value: _currentPosition!.longitude
                                               .toStringAsFixed(6),
                                         ),
@@ -794,7 +805,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         child: _buildLocationInfoTile(
                                           context,
                                           icon: Icons.height,
-                                          label: 'Altitude',
+                                          label: \${_getText('altitude', 'Altitude')},
                                           value:
                                               '\${_currentPosition!.altitude.toStringAsFixed(1)} m',
                                         ),
@@ -804,7 +815,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         child: _buildLocationInfoTile(
                                           context,
                                           icon: Icons.speed,
-                                          label: 'Accuracy',
+                                          label: \${_getText('accuracy', 'Accuracy')},
                                           value:
                                               '±\${_currentPosition!.accuracy.toStringAsFixed(1)} m',
                                         ),
@@ -817,7 +828,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     child: OutlinedButton.icon(
                                       onPressed: _copyCoordinates,
                                       icon: const Icon(Icons.copy),
-                                      label: const Text('Copy Coordinates'),
+                                      label: Text(\${_getText('copyCoordinates', 'Copy Coordinates')}),
                                     ),
                                   ),
                                 ],
@@ -835,7 +846,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     sliver: SliverToBoxAdapter(
                       child: Text(
-                        'AI Assistant',
+                        \${_getText('aiAssistant', 'AI Assistant')},
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -865,7 +876,7 @@ $chatbotUI
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Photo captured successfully!')),
+            SnackBar(content: Text(\${_getText('photoCaptured', 'Photo captured successfully!')})),
           );
         }
       }
@@ -887,7 +898,7 @@ $chatbotUI
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Image added from gallery!')),
+            SnackBar(content: Text(\${_getText('imageAdded', 'Image added from gallery!')})),
           );
         }
       }
@@ -920,7 +931,7 @@ $chatbotUI
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Photo Gallery (\${_capturedImages.length})',
+                    '\${\${_getText('photoGallery', 'Photo Gallery')}} (\${_capturedImages.length})',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -988,12 +999,12 @@ $chatbotUI
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Photo'),
-        content: const Text('Are you sure you want to delete this photo?'),
+        title: Text(\${_getText('deletePhoto', 'Delete Photo')}),
+        content: Text(\${_getText('deletePhotoConfirm', 'Are you sure you want to delete this photo?')}),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(\${_getText('cancel', 'Cancel')}),
           ),
           TextButton(
             onPressed: () {
@@ -1002,17 +1013,16 @@ $chatbotUI
               });
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Photo deleted')),
+                SnackBar(content: Text(\${_getText('photoDeleted', 'Photo deleted')})),
               );
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text(\${_getText('delete', 'Delete')}, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
     );
   }
 
-  // Call helper methods
   Future<void> _startCall() async {
     try {
       final number = await _promptPhoneNumber();
@@ -1033,7 +1043,7 @@ $chatbotUI
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Enter phone number'),
+          title: Text(\${_getText('enterPhoneNumber', 'Enter phone number')}),
           content: TextField(
             controller: controller,
             keyboardType: TextInputType.phone,
@@ -1045,11 +1055,11 @@ $chatbotUI
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text(\${_getText('cancel', 'Cancel')}),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(context, controller.text),
-              child: const Text('Call'),
+              child: Text(\${_getText('call', 'Call')}),
             ),
           ],
         );
@@ -1057,7 +1067,6 @@ $chatbotUI
     );
   }
 
-  // Contact helper methods
   Future<void> _pickContact() async {
     try {
       final contact = await PhoneContactsService.pickContact();
@@ -1067,7 +1076,7 @@ $chatbotUI
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Contact selected: \${contact.name}')),
+            SnackBar(content: Text('\${\${_getText('contactSelected', 'Contact selected')}}: \${contact.name}')),
           );
         }
       }
@@ -1102,7 +1111,7 @@ $chatbotUI
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '\${_selectedContact!.phoneNumber} copied!',
+              '\${_selectedContact!.phoneNumber} \${\${_getText('copied', 'copied!')}}',
             ),
           ),
         );
@@ -1119,7 +1128,7 @@ $chatbotUI
 
     if (exists) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Contact already saved!')),
+        SnackBar(content: Text(\${_getText('contactAlreadySaved', 'Contact already saved!')})),
       );
       return;
     }
@@ -1132,7 +1141,7 @@ $chatbotUI
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '\${_selectedContact!.name} saved!',
+            '\${_selectedContact!.name} \${\${_getText('saved', 'saved!')}}',
           ),
         ),
       );
@@ -1159,7 +1168,7 @@ $chatbotUI
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Saved Contacts (\${_savedContacts.length})',
+                    '\${\${_getText('savedContacts', 'Saved Contacts')}} (\${_savedContacts.length})',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -1191,7 +1200,7 @@ $chatbotUI
                       trailing: PopupMenuButton(
                         itemBuilder: (context) => [
                           PopupMenuItem(
-                            child: const Text('Call'),
+                            child: Text(\${_getText('call', 'Call')}),
                             onTap: () async {
                               try {
                                 await CallService.callNumber(
@@ -1207,7 +1216,7 @@ $chatbotUI
                             },
                           ),
                           PopupMenuItem(
-                            child: const Text('Copy'),
+                            child: Text(\${_getText('copy', 'Copy')}),
                             onTap: () {
                               Clipboard.setData(
                                 ClipboardData(text: contact.phoneNumber),
@@ -1216,7 +1225,7 @@ $chatbotUI
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                        '\${contact.phoneNumber} copied!',
+                                        '\${contact.phoneNumber} \${\${_getText('copied', 'copied!')}}',
                                       ),
                                     ),
                                   );
@@ -1225,9 +1234,9 @@ $chatbotUI
                             },
                           ),
                           PopupMenuItem(
-                            child: const Text(
-                              'Delete',
-                              style: TextStyle(color: Colors.red),
+                            child: Text(
+                              \${_getText('delete', 'Delete')},
+                              style: const TextStyle(color: Colors.red),
                             ),
                             onTap: () {
                               setState(() {
@@ -1236,7 +1245,7 @@ $chatbotUI
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('\${contact.name} deleted'),
+                                    content: Text('\${contact.name} \${\${_getText('deleted', 'deleted')}}'),
                                   ),
                                 );
                               }
@@ -1255,7 +1264,7 @@ $chatbotUI
     );
   }
   $chatbotHelperFunction
-    // Location helper methods
+  
   Future<void> _getCurrentLocation() async {
     setState(() {
       _isLoadingLocation = true;
@@ -1269,7 +1278,7 @@ $chatbotUI
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Location retrieved successfully!')),
+          SnackBar(content: Text(\${_getText('locationRetrieved', 'Location retrieved successfully!')})),
         );
       }
     } catch (e) {
@@ -1291,7 +1300,7 @@ $chatbotUI
     Clipboard.setData(ClipboardData(text: coords)).then((_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Coordinates copied: \$coords')),
+          SnackBar(content: Text('\${\${_getText('coordinatesCopied', 'Coordinates copied')}}: \$coords')),
         );
       }
     });
@@ -1337,7 +1346,6 @@ $chatbotUI
       ),
     );
   }
-
 }
 ''';
   }
