@@ -102,7 +102,7 @@ appforge --version
 
 You should see:
 ```
-appforge_cli version: 0.1.2
+appforge_cli version: 0.1.3
 ```
 
 Or simply run:

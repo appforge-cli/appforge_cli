@@ -1,3 +1,9 @@
+## 0.1.3
+
+- Fixed critical issues from 0.1.2
+- Improved command handling and CLI stability
+- Bug fixes and internal refactors
+
 ## 0.1.2
 
 - Added location feature, fixed localization and provider bugs
