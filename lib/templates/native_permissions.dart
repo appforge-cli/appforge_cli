@@ -1,3 +1,4 @@
+// 1. UPDATE: native_permissions.dart - Add location permissions
 class NativePermissions {
   static final Map<String, List<String>> android = {
     'camera': [
@@ -14,6 +15,15 @@ class NativePermissions {
     ],
     'call': [
       'android.permission.CALL_PHONE',
+    ],
+    'contacts': [
+      'android.permission.READ_CONTACTS',
+      'android.permission.WRITE_CONTACTS',
+    ],
+    'location': [
+      'android.permission.ACCESS_FINE_LOCATION',
+      'android.permission.ACCESS_COARSE_LOCATION',
+      'android.permission.ACCESS_BACKGROUND_LOCATION', // For background location
     ],
   };
 
@@ -37,6 +47,18 @@ class NativePermissions {
     'recorder': {
       'NSMicrophoneUsageDescription':
           'Microphone access is required to record audio.',
+    },
+    'contacts': {
+      'NSContactsUsageDescription':
+          'Contacts access is required to select and save contacts.',
+    },
+    'location': {
+      'NSLocationWhenInUseUsageDescription':
+          'Location access is required to show your current position on the map.',
+      'NSLocationAlwaysUsageDescription':
+          'Location access is required to track your location in the background.',
+      'NSLocationAlwaysAndWhenInUseUsageDescription':
+          'Location access is required to provide location-based services.',
     },
   };
 }

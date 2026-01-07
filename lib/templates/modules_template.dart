@@ -1,4 +1,168 @@
 class ModulesTemplate {
+  static String locationService(String projectName) {
+    return '''
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+/// Service for handling location operations
+/// 
+/// Features:
+/// - Get current location (one-time)
+/// - Stream location updates (continuous)
+/// - Calculate distance between coordinates
+/// - Check location services and permissions
+/// - Open location settings
+class LocationService {
+  /// Get the current device location
+  /// 
+  /// Returns [Position] with latitude, longitude, altitude, etc.
+  /// Throws [PermissionDeniedException] if permission denied
+  /// Throws [LocationServiceDisabledException] if location services disabled
+  Future<Position> getCurrentLocation() async {
+    // Check if location services are enabled
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw LocationServiceDisabledException('Location services are disabled');
+    }
+
+    // Check permission
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        throw PermissionDeniedException('Location permission denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw PermissionDeniedException(
+        'Location permissions are permanently denied',
+      );
+    }
+
+    // Get current position
+    return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+  }
+
+  /// Get continuous location updates as a stream
+  /// 
+  /// [distanceFilter] - minimum distance (in meters) before update
+  /// [intervalDuration] - minimum time between updates
+  Stream<Position> getLocationStream({
+    double distanceFilter = 10, // 10 meters
+    Duration intervalDuration = const Duration(seconds: 5),
+  }) {
+    return Geolocator.getPositionStream(
+      locationSettings: LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: distanceFilter.toInt(),
+        timeLimit: intervalDuration,
+      ),
+    );
+  }
+
+  /// Calculate distance between two coordinates in meters
+  /// 
+  /// Returns distance in meters
+  double calculateDistance(
+    double startLatitude,
+    double startLongitude,
+    double endLatitude,
+    double endLongitude,
+  ) {
+    return Geolocator.distanceBetween(
+      startLatitude,
+      startLongitude,
+      endLatitude,
+      endLongitude,
+    );
+  }
+
+  /// Calculate bearing between two coordinates in degrees
+  /// 
+  /// Returns bearing in degrees (0-360)
+  double calculateBearing(
+    double startLatitude,
+    double startLongitude,
+    double endLatitude,
+    double endLongitude,
+  ) {
+    return Geolocator.bearingBetween(
+      startLatitude,
+      startLongitude,
+      endLatitude,
+      endLongitude,
+    );
+  }
+
+  /// Check if location services are enabled
+  Future<bool> isLocationServiceEnabled() async {
+    return await Geolocator.isLocationServiceEnabled();
+  }
+
+  /// Check current location permission status
+  Future<LocationPermission> checkPermission() async {
+    return await Geolocator.checkPermission();
+  }
+
+  /// Request location permission
+  Future<LocationPermission> requestPermission() async {
+    return await Geolocator.requestPermission();
+  }
+
+  /// Open location settings page
+  Future<bool> openLocationSettings() async {
+    return await Geolocator.openLocationSettings();
+  }
+
+  /// Open app settings (for when permission is permanently denied)
+  Future<bool> openAppSettings() async {
+    return await openAppSettings();
+  }
+
+  /// Get last known position (may be null or outdated)
+  Future<Position?> getLastKnownPosition() async {
+    return await Geolocator.getLastKnownPosition();
+  }
+
+  /// Format position as a readable string
+  String formatPosition(Position position) {
+    return 'Lat: \${position.latitude.toStringAsFixed(6)}, '
+        'Lon: \${position.longitude.toStringAsFixed(6)}';
+  }
+
+  /// Format distance in a human-readable way
+  String formatDistance(double meters) {
+    if (meters < 1000) {
+      return '\${meters.toStringAsFixed(0)} m';
+    } else {
+      return '\${(meters / 1000).toStringAsFixed(2)} km';
+    }
+  }
+}
+
+/// Exception thrown when location services are disabled
+class LocationServiceDisabledException implements Exception {
+  final String message;
+  LocationServiceDisabledException(this.message);
+  
+  @override
+  String toString() => message;
+}
+
+/// Exception thrown when location permission is denied
+class PermissionDeniedException implements Exception {
+  final String message;
+  PermissionDeniedException(this.message);
+  
+  @override
+  String toString() => message;
+}
+''';
+  }
+
   // 📷 Camera service
   static String cameraService(String projectName) {
     return '''

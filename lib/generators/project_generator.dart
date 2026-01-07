@@ -259,6 +259,11 @@ class ProjectGenerator {
         'description': 'Phone call and VoIP service',
         'dependencies': ['url_launcher', 'permission_handler'],
       },
+      'location': {
+        'name': '📍 Location Module',
+        'description': 'GPS location tracking and geolocation services',
+        'dependencies': ['geolocator', 'permission_handler'],
+      },
     };
 
     for (final entry in availableModules.entries) {
@@ -566,6 +571,14 @@ org.gradle.daemon=true
           logger.detail('✓ Generated call_service.dart');
           break;
 
+        case 'location':
+          await FileUtils.writeFile(
+            path.join(moduleDir, 'location_service.dart'),
+            ModulesTemplate.locationService(projectName),
+          );
+          logger.detail('✓ Generated location_service.dart');
+          break;
+
         case 'contacts':
           final contactsDir = path.join(modulesRoot, 'contacts');
           await Directory(contactsDir).create(recursive: true);
@@ -626,6 +639,9 @@ org.gradle.daemon=true
           break;
         case 'recorder':
           barrelContent.writeln("export 'voice/audio_recorder_service.dart';");
+          break;
+        case 'location':
+          barrelContent.writeln("export 'location/location_service.dart';");
           break;
         case 'call':
           barrelContent.writeln("export 'call/call_service.dart';");

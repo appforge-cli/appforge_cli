@@ -530,7 +530,7 @@ class ChatbotService {
   Future<String> sendMessage(List<ChatMessageModel> messages) async {
     try {
       final response = await _dio.post(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=\${AppConstants.geminiApiKey}",
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=\${AppConstants.geminiApiKey}",
         data: {
           "contents": messages.map((e) => e.toMap()).toList(),
           "generationConfig": {

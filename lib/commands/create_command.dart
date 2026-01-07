@@ -310,7 +310,8 @@ class CreateCommand extends Command<int> {
       'speech',
       'recorder',
       'call',
-      'contacts'
+      'contacts',
+      'location', 
     ];
 
     // Show summary before proceeding
