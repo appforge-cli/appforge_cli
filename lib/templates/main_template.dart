@@ -32,6 +32,7 @@ import 'package:$projectName/core/providers/locale_provider.dart';
     // --- Firebase init code in main() ---
     final firebaseInit = includeFirebase
         ? '''
+// If you have selected Firebase but have not configured it yet, this will throw an error. Make sure to set up Firebase for your project. 
 await Firebase.initializeApp(
 options: DefaultFirebaseOptions.currentPlatform,
 );

@@ -22,7 +22,6 @@ import 'package:$projectName/features/app/screens/onboarding_screen.dart';
 // Import generated screens
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/home/screens/home_screen.dart';
-import '../../features/profile/screens/profile_screen.dart';
 $chatbotImport
 
 final GoRouter appRouter = GoRouter(
@@ -48,13 +47,6 @@ final GoRouter appRouter = GoRouter(
       path: '/',
       name: 'home',
       builder: (context, state) => const HomeScreen(),
-    ),
-    
-    // Profile Route
-    GoRoute(
-      path: '/profile',
-      name: 'profile',
-      builder: (context, state) => const ProfileScreen(),
     ),
     
     // Auth Routes

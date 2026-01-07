@@ -367,6 +367,38 @@ output-class: AppLocalizations
         "type": "int"
       }
     }
+  },
+  "currentLocation": "Current Location",
+  "@currentLocation": {
+    "description": "Location section header"
+  },
+  "getCurrentGPS": "Get your current GPS coordinates",
+  "@getCurrentGPS": {
+    "description": "Prompt to fetch GPS coordinates"
+  },
+  "getLocation": "Get Location",
+  "@getLocation": {
+    "description": "Get location button text"
+  },
+  "latitude": "Latitude",
+  "@latitude": {
+    "description": "Latitude label"
+  },
+  "longitude": "Longitude",
+  "@longitude": {
+    "description": "Longitude label"
+  },
+  "altitude": "Altitude",
+  "@altitude": {
+    "description": "Altitude label"
+  },
+  "accuracy": "Accuracy",
+  "@accuracy": {
+    "description": "Accuracy label"
+  },
+  "copyCoordinates": "Copy Coordinates",
+  "@copyCoordinates": {
+    "description": "Copy coordinates button text"
   }
 }
 ''';
@@ -412,7 +444,50 @@ output-class: AppLocalizations
   "noDataFound": "${translations['noDataFound']}",
   "chatbot": "${translations['chatbot']}",
   "typeMessage": "${translations['typeMessage']}",
-  "thinking": "${translations['thinking']}"
+  "thinking": "${translations['thinking']}",
+  "selectLanguage": "${translations['selectLanguage']}",
+  "welcomeDeveloper": "${translations['welcomeDeveloper']}",
+  "startCodingMessage": "${translations['startCodingMessage']}",
+  "photoGallery": "${translations['photoGallery']}",
+  "takePhoto": "${translations['takePhoto']}",
+  "pickImage": "${translations['pickImage']}",
+  "viewPhotos": "${translations['viewPhotos']}",
+  "calling": "${translations['calling']}",
+  "makeACall": "${translations['makeACall']}",
+  "quicklyDialNumber": "${translations['quicklyDialNumber']}",
+  "startCall": "${translations['startCall']}",
+  "contacts": "${translations['contacts']}",
+  "pickContact": "${translations['pickContact']}",
+  "savedContacts": "${translations['savedContacts']}",
+  "call": "${translations['call']}",
+  "copy": "${translations['copy']}",
+  "aiAssistant": "${translations['aiAssistant']}",
+  "chatWithAI": "${translations['chatWithAI']}",
+  "askQuestionsInstant": "${translations['askQuestionsInstant']}",
+  "photoCapturedSuccess": "${translations['photoCapturedSuccess']}",
+  "imageAddedGallery": "${translations['imageAddedGallery']}",
+  "deletePhoto": "${translations['deletePhoto']}",
+  "deletePhotoConfirm": "${translations['deletePhotoConfirm']}",
+  "photoDeleted": "${translations['photoDeleted']}",
+  "callError": "${translations['callError']}",
+  "enterPhoneNumber": "${translations['enterPhoneNumber']}",
+  "phoneNumberHint": "${translations['phoneNumberHint']}",
+  "contactSelected": "${translations['contactSelected']}",
+  "numberCopied": "${translations['numberCopied']}",
+  "contactAlreadySaved": "${translations['contactAlreadySaved']}",
+  "contactSaved": "${translations['contactSaved']}",
+  "savedContactsTitle": "${translations['savedContactsTitle']}",
+  "contactDeleted": "${translations['contactDeleted']}",
+  "errorMessage": "${translations['errorMessage']}",
+  "photoGalleryTitle": "${translations['photoGalleryTitle']}",
+  "currentLocation": "${translations['currentLocation']}",
+  "getCurrentGPS": "${translations['getCurrentGPS']}",
+  "getLocation": "${translations['getLocation']}",
+  "latitude": "${translations['latitude']}",
+  "longitude": "${translations['longitude']}",
+  "altitude": "${translations['altitude']}",
+  "accuracy": "${translations['accuracy']}",
+  "copyCoordinates": "${translations['copyCoordinates']}"
 }
 ''';
   }
@@ -528,7 +603,15 @@ output-class: AppLocalizations
         "savedContactsTitle": "Contactos Guardados ({count})",
         "contactDeleted": "{name} eliminado",
         "errorMessage": "Error: {error}",
-        "photoGalleryTitle": "Galería de Fotos ({count})"
+        "photoGalleryTitle": "Galería de Fotos ({count})",
+        "currentLocation": "Ubicación actual",
+        "getCurrentGPS": "Obtén tus coordenadas GPS actuales",
+        "getLocation": "Obtener ubicación",
+        "latitude": "Latitud",
+        "longitude": "Longitud",
+        "altitude": "Altitud",
+        "accuracy": "Precisión",
+        "copyCoordinates": "Copiar coordenadas"
       },
       'fr': {
         "@@locale": "fr",
@@ -602,7 +685,15 @@ output-class: AppLocalizations
         "savedContactsTitle": "Contacts Enregistrés ({count})",
         "contactDeleted": "{name} supprimé",
         "errorMessage": "Erreur: {error}",
-        "photoGalleryTitle": "Galerie de Photos ({count})"
+        "photoGalleryTitle": "Galerie de Photos ({count})",
+        "currentLocation": "Position actuelle",
+        "getCurrentGPS": "Obtenez vos coordonnées GPS actuelles",
+        "getLocation": "Obtenir la position",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "altitude": "Altitude",
+        "accuracy": "Précision",
+        "copyCoordinates": "Copier les coordonnées"
       },
       'de': {
         "@@locale": "de",
@@ -676,7 +767,15 @@ output-class: AppLocalizations
         "savedContactsTitle": "Gespeicherte Kontakte ({count})",
         "contactDeleted": "{name} gelöscht",
         "errorMessage": "Fehler: {error}",
-        "photoGalleryTitle": "Fotogalerie ({count})"
+        "photoGalleryTitle": "Fotogalerie ({count})",
+        "currentLocation": "Aktueller Standort",
+        "getCurrentGPS": "Holen Sie sich Ihre aktuellen GPS-Koordinaten",
+        "getLocation": "Standort abrufen",
+        "latitude": "Breitengrad",
+        "longitude": "Längengrad",
+        "altitude": "Höhe",
+        "accuracy": "Genauigkeit",
+        "copyCoordinates": "Koordinaten kopieren"
       },
       'it': {
         "@@locale": "it",
@@ -749,7 +848,15 @@ output-class: AppLocalizations
         "savedContactsTitle": "Contatti Salvati ({count})",
         "contactDeleted": "{name} eliminato",
         "errorMessage": "Errore: {error}",
-        "photoGalleryTitle": "Galleria Foto ({count})"
+        "photoGalleryTitle": "Galleria Foto ({count})",
+        "currentLocation": "Posizione attuale",
+        "getCurrentGPS": "Ottieni le tue coordinate GPS attuali",
+        "getLocation": "Ottieni posizione",
+        "latitude": "Latitudine",
+        "longitude": "Longitudine",
+        "altitude": "Altitudine",
+        "accuracy": "Precisione",
+        "copyCoordinates": "Copia coordinate"
       },
       'pt': {
         "@@locale": "pt",
@@ -823,7 +930,15 @@ output-class: AppLocalizations
         "savedContactsTitle": "Contatos salvos ({count})",
         "contactDeleted": "{name} excluído",
         "errorMessage": "Erro: {error}",
-        "photoGalleryTitle": "Galeria de fotos ({count})"
+        "photoGalleryTitle": "Galeria de fotos ({count})",
+        "currentLocation": "Localização atual",
+        "getCurrentGPS": "Obtenha suas coordenadas GPS atuais",
+        "getLocation": "Obter localização",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "altitude": "Altitude",
+        "accuracy": "Precisão",
+        "copyCoordinates": "Copiar coordenadas"
       },
       'ru': {
         "@@locale": "ru",
@@ -897,7 +1012,15 @@ output-class: AppLocalizations
         "savedContactsTitle": "Сохраненные контакты ({count})",
         "contactDeleted": "{name} удален",
         "errorMessage": "Ошибка: {error}",
-        "photoGalleryTitle": "Фотогалерея ({count})"
+        "photoGalleryTitle": "Фотогалерея ({count})",
+        "currentLocation": "Текущее местоположение",
+        "getCurrentGPS": "Получите ваши текущие GPS координаты",
+        "getLocation": "Получить местоположение",
+        "latitude": "Широта",
+        "longitude": "Долгота",
+        "altitude": "Высота",
+        "accuracy": "Точность",
+        "copyCoordinates": "Копировать координаты"
       },
       'hi': {
         "@@locale": "hi",
@@ -970,7 +1093,15 @@ output-class: AppLocalizations
         "savedContactsTitle": "सहेजे गए संपर्क ({count})",
         "contactDeleted": "{name} हटाया गया",
         "errorMessage": "त्रुटि: {error}",
-        "photoGalleryTitle": "फोटो गैलरी ({count})"
+        "photoGalleryTitle": "फोटो गैलरी ({count})",
+        "currentLocation": "वर्तमान स्थान",
+        "getCurrentGPS": "अपने वर्तमान GPS निर्देशांक प्राप्त करें",
+        "getLocation": "स्थान प्राप्त करें",
+        "latitude": "अक्षांश",
+        "longitude": "देशांतर",
+        "altitude": "ऊंचाई",
+        "accuracy": "सटीकता",
+        "copyCoordinates": "निर्देशांक कॉपी करें"
       },
       'bn': {
         "@@locale": "bn",
@@ -1043,7 +1174,15 @@ output-class: AppLocalizations
         "savedContactsTitle": "সংরক্ষিত যোগাযোগ ({count})",
         "contactDeleted": "{name} মুছে ফেলা হয়েছে",
         "errorMessage": "ত্রুটি: {error}",
-        "photoGalleryTitle": "ফটো গ্যালারি ({count})"
+        "photoGalleryTitle": "ফটো গ্যালারি ({count})",
+        "currentLocation": "বর্তমান অবস্থান",
+        "getCurrentGPS": "আপনার বর্তমান GPS স্থানাঙ্ক পান",
+        "getLocation": "অবস্থান পান",
+        "latitude": "অক্ষাংশ",
+        "longitude": "দ্রাঘিমাংশ",
+        "altitude": "উচ্চতা",
+        "accuracy": "নির্ভুলতা",
+        "copyCoordinates": "স্থানাঙ্ক কপি করুন"
       },
       'te': {
         "@@locale": "te",
@@ -1116,7 +1255,15 @@ output-class: AppLocalizations
         "savedContactsTitle": "సేవ్ చేసిన పరిచయాలు ({count})",
         "contactDeleted": "{name} తొలగించబడింది",
         "errorMessage": "లోపం: {error}",
-        "photoGalleryTitle": "ఫోటో గ్యాలరీ ({count})"
+        "photoGalleryTitle": "ఫోటో గ్యాలరీ ({count})",
+        "currentLocation": "ప్రస్తుత స్థానం",
+        "getCurrentGPS": "మీ ప్రస్తుత GPS కోఆర్డినేట్‌లను పొందండి",
+        "getLocation": "స్థానాన్ని పొందండి",
+        "latitude": "అక్షాంశం",
+        "longitude": "రేఖాంశం",
+        "altitude": "ఎత్తు",
+        "accuracy": "ఖచ్చితత్వం",
+        "copyCoordinates": "కోఆర్డినేట్‌లను కాపీ చేయండి"
       },
       'mr': {
         "@@locale": "mr",
@@ -1190,7 +1337,15 @@ output-class: AppLocalizations
         "savedContactsTitle": "जतन केलेले संपर्क ({count})",
         "contactDeleted": "{name} हटवला",
         "errorMessage": "त्रुटी: {error}",
-        "photoGalleryTitle": "फोटो गॅलरी ({count})"
+        "photoGalleryTitle": "फोटो गॅलरी ({count})",
+        "currentLocation": "सध्याचे स्थान",
+        "getCurrentGPS": "तुमचे सध्याचे GPS निर्देशांक मिळवा",
+        "getLocation": "स्थान मिळवा",
+        "latitude": "अक्षांश",
+        "longitude": "रेखांश",
+        "altitude": "उंची",
+        "accuracy": "अचूकता",
+        "copyCoordinates": "निर्देशांक कॉपी करा"
       },
       'ta': {
         "@@locale": "ta",
@@ -1263,7 +1418,15 @@ output-class: AppLocalizations
         "savedContactsTitle": "சேமிக்கப்பட்ட தொடர்புகள் ({count})",
         "contactDeleted": "{name} நீக்கப்பட்டது",
         "errorMessage": "பிழை: {error}",
-        "photoGalleryTitle": "புகைப்பட தொகுப்பு ({count})"
+        "photoGalleryTitle": "புகைப்பட தொகுப்பு ({count})",
+        "currentLocation": "தற்போதைய இடம்",
+        "getCurrentGPS": "உங்கள் தற்போதைய GPS ஆயத்தொலைவுகளைப் பெறுங்கள்",
+        "getLocation": "இடத்தைப் பெறுங்கள்",
+        "latitude": "அட்சரேகை",
+        "longitude": "தீர்க்கரேகை",
+        "altitude": "உயரம்",
+        "accuracy": "துல்லியம்",
+        "copyCoordinates": "ஆயத்தொலைவுகளை நகலெடுக்கவும்"
       },
       'gu': {
         "@@locale": "gu",
@@ -1336,7 +1499,15 @@ output-class: AppLocalizations
         "savedContactsTitle": "સાચવેલા સંપર્કો ({count})",
         "contactDeleted": "{name} કાઢ્યો",
         "errorMessage": "શુદ્ધ: {error}",
-        "photoGalleryTitle": "ફોટો ગેલરી ({count})"
+        "photoGalleryTitle": "ફોટો ગેલરી ({count})",
+        "currentLocation": "વર્તમાન સ્થાન",
+        "getCurrentGPS": "તમારા વર્તમાન GPS કોઓર્ડિનેટ્સ મેળવો",
+        "getLocation": "સ્થાન મેળવો",
+        "latitude": "અક્ષાંશ",
+        "longitude": "રેખાંશ",
+        "altitude": "ઊંચાઈ",
+        "accuracy": "ચોકસાઈ",
+        "copyCoordinates": "કોઓર્ડિનેટ્સ કૉપિ કરો"
       },
       'kn': {
         "@@locale": "kn",
@@ -1410,7 +1581,15 @@ output-class: AppLocalizations
         "savedContactsTitle": "ಉಳಿಸಲಾದ ಸಂಪರ್ಕಗಳು ({count})",
         "contactDeleted": "{name} ಅಳಿಸಲಾಗಿದೆ",
         "errorMessage": "ದೋಷ: {error}",
-        "photoGalleryTitle": "ಫೋಟೋ ಗ್ಯಾಲರಿ ({count})"
+        "photoGalleryTitle": "ಫೋಟೋ ಗ್ಯಾಲರಿ ({count})",
+        "currentLocation": "ಪ್ರಸ್ತುತ ಸ್ಥಳ",
+        "getCurrentGPS": "ನಿಮ್ಮ ಪ್ರಸ್ತುತ GPS ನಿರ್ದೇಶಾಂಕಗಳನ್ನು ಪಡೆಯಿರಿ",
+        "getLocation": "ಸ್ಥಳವನ್ನು ಪಡೆಯಿರಿ",
+        "latitude": "ಅಕ್ಷಾಂಶ",
+        "longitude": "ರೇಖಾಂಶ",
+        "altitude": "ಎತ್ತರ",
+        "accuracy": "ನಿಖರತೆ",
+        "copyCoordinates": "ನಿರ್ದೇಶಾಂಕಗಳನ್ನು ನಕಲಿಸಿ"
       },
       'ml': {
         "@@locale": "ml",
@@ -1484,7 +1663,15 @@ output-class: AppLocalizations
         "savedContactsTitle": "സംരക്ഷിച്ച കോൺടാക്റ്റുകൾ ({count})",
         "contactDeleted": "{name} ഇല്ലാതാക്കി",
         "errorMessage": "പിശക്: {error}",
-        "photoGalleryTitle": "ഫോട്ടോ ഗാലറി ({count})"
+        "photoGalleryTitle": "ഫോട്ടോ ഗാലറി ({count})",
+        "currentLocation": "നിലവിലെ സ്ഥാനം",
+        "getCurrentGPS": "നിങ്ങളുടെ നിലവിലെ GPS കോർഡിനേറ്റുകൾ നേടുക",
+        "getLocation": "സ്ഥാനം നേടുക",
+        "latitude": "അക്ഷാംശം",
+        "longitude": "രേഖാംശം",
+        "altitude": "ഉയരം",
+        "accuracy": "കൃത്യത",
+        "copyCoordinates": "കോർഡിനേറ്റുകൾ പകർത്തുക"
       },
       'pa': {
         "@@locale": "pa",
@@ -1558,7 +1745,15 @@ output-class: AppLocalizations
         "savedContactsTitle": "ਸੇਵ ਕੀਤੇ ਸੰਪਰਕ ({count})",
         "contactDeleted": "{name} ਡਿਲੀਟ ਹੋ ਗਿਆ",
         "errorMessage": "ਗਲਤੀ: {error}",
-        "photoGalleryTitle": "ਫੋਟੋ ਗੈਲਰੀ ({count})"
+        "photoGalleryTitle": "ਫੋਟੋ ਗੈਲਰੀ ({count})",
+        "currentLocation": "ਮੌਜੂਦਾ ਸਥਿਤੀ",
+        "getCurrentGPS": "ਆਪਣੇ ਮੌਜੂਦਾ GPS ਕੋਆਰਡੀਨੇਟਸ ਪ੍ਰਾਪਤ ਕਰੋ",
+        "getLocation": "ਸਥਿਤੀ ਪ੍ਰਾਪਤ ਕਰੋ",
+        "latitude": "ਅਕਸ਼ਾਂਸ਼",
+        "longitude": "ਰੇਖਾਂਸ਼",
+        "altitude": "ਉਚਾਈ",
+        "accuracy": "ਸਟੀਕਤਾ",
+        "copyCoordinates": "ਕੋਆਰਡੀਨੇਟਸ ਕਾਪੀ ਕਰੋ"
       },
       'or': {
         "@@locale": "or",
@@ -1632,7 +1827,15 @@ output-class: AppLocalizations
         "savedContactsTitle": "ସେଭ୍ ହୋଇଥିବା ସମ୍ପର୍କଗୁଡ଼ିକ ({count})",
         "contactDeleted": "{name} ଡିଲିଟ୍ ହୋଇଛି",
         "errorMessage": "ତ୍ରୁଟି: {error}",
-        "photoGalleryTitle": "ଫଟୋ ଗ୍ୟାଲେରି ({count})"
+        "photoGalleryTitle": "ଫଟୋ ଗ୍ୟାଲେରି ({count})",
+        "currentLocation": "ବର୍ତ୍ତମାନର ଅବସ୍ଥାନ",
+        "getCurrentGPS": "ଆପଣଙ୍କର ବର୍ତ୍ତମାନର GPS ସ୍ଥାନାଙ୍କ ପାଆନ୍ତୁ",
+        "getLocation": "ଅବସ୍ଥାନ ପାଆନ୍ତୁ",
+        "latitude": "ଅକ୍ଷାଂଶ",
+        "longitude": "ଦ୍ରାଘିମା",
+        "altitude": "ଉଚ୍ଚତା",
+        "accuracy": "ସଠିକତା",
+        "copyCoordinates": "ସ୍ଥାନାଙ୍କ କପି କରନ୍ତୁ"
       },
       'zh': {
         "@@locale": "zh",
@@ -1704,7 +1907,15 @@ output-class: AppLocalizations
         "savedContactsTitle": "已保存的联系人 ({count})",
         "contactDeleted": "已删除{name}",
         "errorMessage": "错误：{error}",
-        "photoGalleryTitle": "照片库 ({count})"
+        "photoGalleryTitle": "照片库 ({count})",
+        "currentLocation": "当前位置",
+        "getCurrentGPS": "获取您当前的GPS坐标",
+        "getLocation": "获取位置",
+        "latitude": "纬度",
+        "longitude": "经度",
+        "altitude": "海拔",
+        "accuracy": "精确度",
+        "copyCoordinates": "复制坐标"
       },
       'ja': {
         "@@locale": "ja",
@@ -1776,7 +1987,15 @@ output-class: AppLocalizations
         "savedContactsTitle": "保存済み連絡先 ({count})",
         "contactDeleted": "{name}を削除しました",
         "errorMessage": "エラー: {error}",
-        "photoGalleryTitle": "フォトギャラリー ({count})"
+        "photoGalleryTitle": "フォトギャラリー ({count})",
+        "currentLocation": "現在地",
+        "getCurrentGPS": "現在のGPS座標を取得",
+        "getLocation": "位置を取得",
+        "latitude": "緯度",
+        "longitude": "経度",
+        "altitude": "高度",
+        "accuracy": "精度",
+        "copyCoordinates": "座標をコピー"
       },
       'ar': {
         "@@locale": "ar",
@@ -1849,7 +2068,15 @@ output-class: AppLocalizations
         "savedContactsTitle": "جهات الاتصال المحفوظة ({count})",
         "contactDeleted": "تم حذف {name}",
         "errorMessage": "خطأ: {error}",
-        "photoGalleryTitle": "معرض الصور ({count})"
+        "photoGalleryTitle": "معرض الصور ({count})",
+        "currentLocation": "الموقع الحالي",
+        "getCurrentGPS": "احصل على إحداثيات GPS الحالية",
+        "getLocation": "احصل على الموقع",
+        "latitude": "خط العرض",
+        "longitude": "خط الطول",
+        "altitude": "الارتفاع",
+        "accuracy": "الدقة",
+        "copyCoordinates": "نسخ الإحداثيات"
       },
     };
 

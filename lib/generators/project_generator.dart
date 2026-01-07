@@ -328,6 +328,11 @@ class ProjectGenerator {
     );
 
     content = content.replaceAll(
+      'compileSdk = flutter.compileSdkVersion',
+      'compileSdk = 36',
+    );
+
+    content = content.replaceAll(
       'minSdk = flutter.minSdkVersion',
       'minSdk = 24',
     );
@@ -911,21 +916,6 @@ export 'dialogs/confirm_dialog.dart';
       ),
     );
     logger.detail('Generated HomeScreen at $homeScreenPath');
-
-    final profileScreenPath = path.join(
-      projectName,
-      'lib',
-      'features',
-      'profile',
-      'screens',
-      'profile_screen.dart',
-    );
-    await Directory(path.dirname(profileScreenPath)).create(recursive: true);
-    await FileUtils.writeFile(
-      profileScreenPath,
-      ScreenTemplates.generateProfileScreen(projectName),
-    );
-    logger.detail('Generated ProfileScreen at $profileScreenPath');
 
     await _generateAuthScreens();
   }

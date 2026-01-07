@@ -454,7 +454,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               const SizedBox(width: 12),
                             if (FeatureService.isImagePickerEnabled)
                               Expanded(
-                                child: OutlinedButton.icon(capturedImages.length
+                               child: OutlinedButton.icon(
                                   onPressed: _pickFromGallery,
                                   icon: const Icon(Icons.photo_library),
                                   label: Text(${_getText('pickImage', 'Pick Image')}),
@@ -734,7 +734,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                           'Current Location',
+                                           ${_getText('currentLocation', 'Current Location')},
                                             style: theme.textTheme.titleMedium
                                                 ?.copyWith(
                                               fontWeight: FontWeight.w600,
@@ -742,7 +742,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            'Get your current GPS coordinates',
+                                            ${_getText('getCurrentGPS', 'Get your current GPS coordinates')},
                                             style: theme.textTheme.bodySmall
                                                 ?.copyWith(
                                               color: theme.colorScheme.onSurface
@@ -767,7 +767,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           : const Icon(Icons.my_location),
                                       label: Text(_isLoadingLocation
                                           ? ${_getText('loading', 'Loading...')}
-                                          : 'Get Location'),
+                                          : ${_getText('getLocation', 'Get Location')}),
                                     ),
                                   ],
                                 ),
@@ -781,7 +781,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         child: _buildLocationInfoTile(
                                           context,
                                           icon: Icons.north,
-                                          label: 'Latitude',
+                                          label: ${_getText('latitude', 'Latitude')},
                                           value: _currentPosition!.latitude
                                               .toStringAsFixed(6),
                                         ),
@@ -791,7 +791,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         child: _buildLocationInfoTile(
                                           context,
                                           icon: Icons.east,
-                                          label: 'Longitude',
+                                          label: ${_getText('longitude', 'Longitude')},
                                           value: _currentPosition!.longitude
                                               .toStringAsFixed(6),
                                         ),
@@ -805,7 +805,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         child: _buildLocationInfoTile(
                                           context,
                                           icon: Icons.height,
-                                          label: 'Altitude',
+                                          label: ${_getText('altitude', 'Altitude')},
                                           value:
                                               '\${_currentPosition!.altitude.toStringAsFixed(1)} m',
                                         ),
@@ -815,7 +815,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         child: _buildLocationInfoTile(
                                           context,
                                           icon: Icons.speed,
-                                          label: 'Accuracy',
+                                          label: ${_getText('accuracy', 'Accuracy')},
                                           value:
                                               '±\${_currentPosition!.accuracy.toStringAsFixed(1)} m',
                                         ),
@@ -828,7 +828,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     child: OutlinedButton.icon(
                                       onPressed: _copyCoordinates,
                                       icon: const Icon(Icons.copy),
-                                      label: Text('Copy Coordinates'),
+                                      label: Text(${_getText('copyCoordinates', 'Copy Coordinates')}),
                                     ),
                                   ),
                                 ],
@@ -1343,402 +1343,6 @@ $chatbotUI
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-''';
-  }
-
-  /// Generates a responsive profile screen with enhanced widgets
-  static String generateProfileScreen(String projectName) {
-    return '''
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import '../../../shared/widgets/widgets.dart';
-
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          // App Bar with Gradient
-          SliverAppBar(
-            expandedHeight: 200,
-            pinned: true,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-              onPressed: () => context.go('/'),
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.edit_outlined),
-                onPressed: () {},
-              ),
-              const SizedBox(width: 8),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              title: const Text(
-                'Profile',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      theme.colorScheme.primary,
-                      theme.colorScheme.secondary,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // Profile Card
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-            sliver: SliverToBoxAdapter(
-              child: ProfileCard(
-                name: 'John Doe',
-                email: 'john.doe@example.com',
-                subtitle: 'Premium Member',
-                onTap: () {},
-                actions: [
-                  ProfileAction(
-                    label: 'Edit',
-                    icon: Icons.edit_outlined,
-                    onTap: () {},
-                  ),
-                  ProfileAction(
-                    label: 'Share',
-                    icon: Icons.share_outlined,
-                    onTap: () {},
-                  ),
-                  ProfileAction(
-                    label: 'QR Code',
-                    icon: Icons.qr_code_2_rounded,
-                    onTap: () {},
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
-
-          // Stats Section
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverToBoxAdapter(
-              child: Card(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(
-                    color: theme.colorScheme.outline.withOpacity(0.1),
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildStatItem(context, '124', 'Posts'),
-                      _buildDivider(theme),
-                      _buildStatItem(context, '2.4K', 'Followers'),
-                      _buildDivider(theme),
-                      _buildStatItem(context, '892', 'Following'),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 32)),
-
-          // Settings Section
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverToBoxAdapter(
-              child: Text(
-                'Settings',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  _buildSettingsGroup(
-                    context,
-                    'Account Settings',
-                    [
-                      _buildSettingsTile(
-                        context,
-                        'Account Information',
-                        Icons.person_outline_rounded,
-                        () {},
-                      ),
-                      _buildSettingsTile(
-                        context,
-                        'Security',
-                        Icons.security_outlined,
-                        () {},
-                      ),
-                      _buildSettingsTile(
-                        context,
-                        'Privacy',
-                        Icons.privacy_tip_outlined,
-                        () {},
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _buildSettingsGroup(
-                    context,
-                    'Preferences',
-                    [
-                      _buildSettingsTile(
-                        context,
-                        'Theme',
-                        isDark ? Icons.dark_mode : Icons.light_mode,
-                        () {},
-                        trailing: Switch(
-                          value: isDark,
-                          onChanged: (value) {
-                            // TODO: Implement theme toggle
-                          },
-                        ),
-                      ),
-                      _buildSettingsTile(
-                        context,
-                        'Notifications',
-                        Icons.notifications_outlined,
-                        () {},
-                      ),
-                      _buildSettingsTile(
-                        context,
-                        'Language',
-                        Icons.language_rounded,
-                        () {},
-                        subtitle: 'English',
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _buildSettingsGroup(
-                    context,
-                    'Support',
-                    [
-                      _buildSettingsTile(
-                        context,
-                        'Help & Support',
-                        Icons.help_outline_rounded,
-                        () {},
-                      ),
-                      _buildSettingsTile(
-                        context,
-                        'Terms of Service',
-                        Icons.description_outlined,
-                        () {},
-                      ),
-                      _buildSettingsTile(
-                        context,
-                        'About',
-                        Icons.info_outline_rounded,
-                        () {},
-                        subtitle: 'Version 1.0.0',
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 32)),
-
-          // Logout Button
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverToBoxAdapter(
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: OutlinedButton.icon(
-                  onPressed: () async {
-                    final result = await ConfirmDialog.show(
-                      context,
-                      title: 'Logout',
-                      message: 'Are you sure you want to logout?',
-                      confirmText: 'Logout',
-                      isDestructive: true,
-                      icon: Icons.logout_rounded,
-                    );
-
-                    if (result == true) {
-                      // TODO: Implement logout
-                      if (context.mounted) {
-                        context.go('/login');
-                      }
-                    }
-                  },
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(
-                      color: theme.colorScheme.error,
-                      width: 1.5,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  icon: Icon(
-                    Icons.logout_rounded,
-                    color: theme.colorScheme.error,
-                  ),
-                  label: Text(
-                    'Logout',
-                    style: TextStyle(
-                      color: theme.colorScheme.error,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 40)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatItem(BuildContext context, String value, String label) {
-    final theme = Theme.of(context);
-    return Column(
-      children: [
-        Text(
-          value,
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withOpacity(0.6),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDivider(ThemeData theme) {
-    return Container(
-      height: 40,
-      width: 1,
-      color: theme.colorScheme.outline.withOpacity(0.2),
-    );
-  }
-
-  Widget _buildSettingsGroup(
-    BuildContext context,
-    String title,
-    List<Widget> children,
-  ) {
-    final theme = Theme.of(context);
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: theme.colorScheme.outline.withOpacity(0.1),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-            child: Text(
-              title,
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurface.withOpacity(0.6),
-              ),
-            ),
-          ),
-          ...children,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSettingsTile(
-    BuildContext context,
-    String title,
-    IconData icon,
-    VoidCallback onTap, {
-    String? subtitle,
-    Widget? trailing,
-  }) {
-    final theme = Theme.of(context);
-    
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.primary.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(
-          icon,
-          color: theme.colorScheme.primary,
-          size: 22,
-        ),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      subtitle: subtitle != null
-          ? Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 12,
-                color: theme.colorScheme.onSurface.withOpacity(0.5),
-              ),
-            )
-          : null,
-      trailing: trailing ?? const Icon(Icons.chevron_right, size: 20),
-      onTap: trailing == null ? onTap : null,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
       ),
     );
   }

@@ -60,20 +60,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         isEnabled: FeatureService.isImagePickerEnabled,
       ),
       FeatureToggle(
-        id: 'speech_to_text',
-        label: 'Speech to Text',
-        description: 'Convert voice input to text',
-        icon: Icons.mic,
-        isEnabled: FeatureService.isSpeechToTextEnabled,
-      ),
-      FeatureToggle(
-        id: 'text_to_speech',
-        label: 'Text to Speech',
-        description: 'Convert text output to voice',
-        icon: Icons.volume_up,
-        isEnabled: FeatureService.isTextToSpeechEnabled,
-      ),
-      FeatureToggle(
         id: 'location',
         label: 'Location Services',
         description: 'Access device location',
@@ -88,18 +74,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         isEnabled: FeatureService.isContactsEnabled,
       ),
       FeatureToggle(
-        id: 'notifications',
-        label: 'Notifications',
-        description: 'Receive push notifications',
-        icon: Icons.notifications,
-        isEnabled: FeatureService.isNotificationsEnabled,
-      ),
-      FeatureToggle(
-        id: 'biometric',
-        label: 'Biometric Authentication',
-        description: 'Use fingerprint or face recognition',
-        icon: Icons.fingerprint,
-        isEnabled: FeatureService.isBiometricEnabled,
+        id: 'call',
+        label: 'Call',
+        description: 'Make phone calls',
+        icon: Icons.call,
+        isEnabled: FeatureService.isCallEnabled,
       ),
     ];
 
@@ -297,12 +276,8 @@ class FeatureService {
   // Specific feature checks
   static bool get isCameraEnabled => isFeatureEnabled('camera');
   static bool get isImagePickerEnabled => isFeatureEnabled('image_picker');
-  static bool get isSpeechToTextEnabled => isFeatureEnabled('speech_to_text');
-  static bool get isTextToSpeechEnabled => isFeatureEnabled('text_to_speech');
   static bool get isLocationEnabled => isFeatureEnabled('location');
   static bool get isContactsEnabled => isFeatureEnabled('contacts');
-  static bool get isNotificationsEnabled => isFeatureEnabled('notifications');
-  static bool get isBiometricEnabled => isFeatureEnabled('biometric');
   static bool get isCallEnabled => isFeatureEnabled('call');
 }
 ''';
