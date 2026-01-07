@@ -309,7 +309,9 @@ import '../../../core/services/feature_service.dart';
 import '../../../core/modules/camera/camera_service.dart';
 import '../../../core/modules/call/call_service.dart';
 import '../../../core/modules/contacts/phone_contacts_service.dart';
-import '../../../core/modules/contacts/contact.dart';$localizationImports
+import '../../../core/modules/contacts/contact.dart';
+import '../../../core/modules/location/location_service.dart';
+import 'package:geolocator/geolocator.dart';;$localizationImports
 $chatbotImports
 
 
@@ -671,6 +673,160 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ],
+                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                  ],
+
+                  // Location Section (conditional based on FeatureService)
+                  if (FeatureService.isLocationEnabled) ...[
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      sliver: SliverToBoxAdapter(
+                        child: Text(
+                          'Location',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      sliver: SliverToBoxAdapter(
+                        child: Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: theme.colorScheme.primary
+                                            .withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Icon(
+                                        Icons.location_on,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Current Location',
+                                            style: theme.textTheme.titleMedium
+                                                ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'Get your current GPS coordinates',
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                              color: theme.colorScheme.onSurface
+                                                  .withOpacity(0.6),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    ElevatedButton.icon(
+                                      onPressed: _isLoadingLocation
+                                          ? null
+                                          : _getCurrentLocation,
+                                      icon: _isLoadingLocation
+                                          ? const SizedBox(
+                                              width: 16,
+                                              height: 16,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                          : const Icon(Icons.my_location),
+                                      label: Text(_isLoadingLocation
+                                          ? 'Loading...'
+                                          : 'Get Location'),
+                                    ),
+                                  ],
+                                ),
+                                if (_currentPosition != null) ...[
+                                  const SizedBox(height: 16),
+                                  const Divider(),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _buildLocationInfoTile(
+                                          context,
+                                          icon: Icons.north,
+                                          label: 'Latitude',
+                                          value: _currentPosition!.latitude
+                                              .toStringAsFixed(6),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _buildLocationInfoTile(
+                                          context,
+                                          icon: Icons.east,
+                                          label: 'Longitude',
+                                          value: _currentPosition!.longitude
+                                              .toStringAsFixed(6),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _buildLocationInfoTile(
+                                          context,
+                                          icon: Icons.height,
+                                          label: 'Altitude',
+                                          value:
+                                              '\${_currentPosition!.altitude.toStringAsFixed(1)} m',
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _buildLocationInfoTile(
+                                          context,
+                                          icon: Icons.speed,
+                                          label: 'Accuracy',
+                                          value:
+                                              '±\${_currentPosition!.accuracy.toStringAsFixed(1)} m',
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: OutlinedButton.icon(
+                                      onPressed: _copyCoordinates,
+                                      icon: const Icon(Icons.copy),
+                                      label: const Text('Copy Coordinates'),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                     const SliverToBoxAdapter(child: SizedBox(height: 32)),
                   ],
 
@@ -1099,6 +1255,89 @@ $chatbotUI
     );
   }
   $chatbotHelperFunction
+    // Location helper methods
+  Future<void> _getCurrentLocation() async {
+    setState(() {
+      _isLoadingLocation = true;
+    });
+
+    try {
+      final position = await _locationService.getCurrentLocation();
+      setState(() {
+        _currentPosition = position;
+        _isLoadingLocation = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Location retrieved successfully!')),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _isLoadingLocation = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: \$e')),
+        );
+      }
+    }
+  }
+
+  void _copyCoordinates() {
+    if (_currentPosition == null) return;
+    final coords =
+        '\${_currentPosition!.latitude}, \${_currentPosition!.longitude}';
+    Clipboard.setData(ClipboardData(text: coords)).then((_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Coordinates copied: \$coords')),
+        );
+      }
+    });
+  }
+
+  Widget _buildLocationInfoTile(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: theme.colorScheme.primary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                ),
+                Text(
+                  value,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 }
 ''';
   }

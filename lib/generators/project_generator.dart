@@ -329,7 +329,7 @@ class ProjectGenerator {
 
     content = content.replaceAll(
       'minSdk = flutter.minSdkVersion',
-      'minSdk = 23',
+      'minSdk = 24',
     );
 
     // Use regex to handle varying whitespace when adding isCoreLibraryDesugaringEnabled
@@ -364,7 +364,7 @@ dependencies {
 
     await buildGradleFile.writeAsString(content);
     logger.detail(
-        '✓ Updated Android build.gradle.kts with NDK 27, minSdk 23, and core library desugaring');
+        '✓ Updated Android build.gradle.kts with NDK 27, minSdk 24, and core library desugaring');
   }
 
   Future<void> _configureAndroidManifest() async {
@@ -390,8 +390,14 @@ dependencies {
       'android.permission.ACCESS_NETWORK_STATE',
     };
 
+    // Add permissions from enabled features
     for (final feature in enabledFeatures) {
       permissions.addAll(NativePermissions.android[feature] ?? []);
+    }
+
+    // Add permissions from selected modules (camera, contacts, speech, etc.)
+    for (final module in selectedModules) {
+      permissions.addAll(NativePermissions.android[module] ?? []);
     }
 
     final buffer = StringBuffer();
@@ -440,8 +446,17 @@ dependencies {
 
     final Map<String, String> entries = {};
 
+    // Add permissions from enabled features
     for (final feature in enabledFeatures) {
       final map = NativePermissions.ios[feature];
+      if (map != null) {
+        entries.addAll(map);
+      }
+    }
+
+    // Add permissions from selected modules (camera, contacts, speech, etc.)
+    for (final module in selectedModules) {
+      final map = NativePermissions.ios[module];
       if (map != null) {
         entries.addAll(map);
       }
